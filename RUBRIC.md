@@ -26,6 +26,8 @@ What earns a place in a knowledge base's documents, where each sentence goes, an
 
 **One Way.** Knowledge moves from conversation to work in flight to settled truth, and never back.
 
+**No Memories.** Agent memory stays off. A memory lives on one machine, outside review, and drifts from a rubric that changes only through discussion. A lesson goes into the document it corrects.
+
 ## 3. How the rubric is kept
 
 **Fix by Subtraction.** A clause added after a failure takes the shape of that failure and no other. Find what caused the failure and remove it before adding anything.
