@@ -12,7 +12,7 @@ What earns a place in a knowledge base's documents, where each sentence goes, an
 
 **One Home.** Every fact lives in exactly one home, and everything else points to it. Name where a sentence's content already lives. If it has a home, cut the sentence. If it deserves one and has none, give it one.
 
-**Ghost Correction.** Write what is true, never what changed. Point to the sentence in the current document that creates the false belief. If there is none, delete the correction. If there is one, fix that sentence instead. Overwrite text rather than marking it superseded. A rejected option survives as one sentence inside the rule it shaped. A rubric's reader is a fresh model, so a rubric corrects only what a fresh model does unprompted.
+**Ghost Correction.** Write what is true, never what changed. Point to the sentence in the current document that creates the false belief. If there is none, delete the correction. If there is one, fix that sentence instead. Overwrite text rather than marking it superseded or tagging its status. A rejected option survives as one sentence inside the rule it shaped. A rubric's reader is a fresh model, so a rubric corrects only what a fresh model does unprompted.
 
 **Cold Reader.** Whatever wrote a document never grades it against these tests. A writer cannot un-know its session, so every sentence it wrote reads as necessary to it. The grader is a reader that never had the session. It asks first which question from a reader of the finished document each sentence answers. No question, no sentence.
 
