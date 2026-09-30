@@ -1,10 +1,8 @@
 # Rubric
 
-What earns a place in a knowledge base's documents, where each sentence goes, and how the rubric itself is kept.
+**Terse is durable.** Every sentence in a durable document is charged to every reader it will ever have, so each earns its place under the rules below or goes.
 
-**Terse is durable.** Every future session reads a durable document, so every sentence in it is charged to all of them. A sentence earns its place only by changing what a fresh reader does. A writer cannot judge that of its own sentences, because each true sentence looks useful to the one who wrote it. So the tests below judge instead, each pointing at the document rather than at the writer's memory.
-
-**Bindings.** Each knowledge base names three things for itself, in the file every session reads. Its source of truth is the artifact that is the specification. Its homes are the documents that hold substance. Its lifecycles say where settled truth, work in flight and conversation each live. This rubric names nothing that only one knowledge base has.
+**Bindings.** Each knowledge base names the three things this rubric leaves open, in the file every session reads. Its source of truth is the artifact that is the specification. Its homes are the documents that hold substance. Its lifecycles say where settled truth, work in flight and conversation each live. Each binding names a thing, never a step or a rule.
 
 ## 1. What earns a place
 
@@ -12,11 +10,11 @@ What earns a place in a knowledge base's documents, where each sentence goes, an
 
 **One Home.** Every fact lives in exactly one home, and everything else points to it. Name where a sentence's content already lives. If it has a home, cut the sentence. If it deserves one and has none, give it one.
 
-**Ghost Correction.** Write what is true, never what changed. Point to the sentence in the current document that creates the false belief. If there is none, delete the correction. If there is one, fix that sentence instead. Overwrite text rather than marking it superseded or tagging its status. A rejected option survives as one sentence inside the rule it shaped. A rubric's reader is a fresh model, so a rubric corrects only what a fresh model does unprompted.
+**Ghost Correction.** Write what is true, never what changed. Point to the sentence in the current document that creates the false belief. If there is none, delete the correction. If there is one, fix that sentence instead. Overwrite text rather than marking it superseded or tagging its status. A rejected option survives as one sentence inside the rule it shaped.
 
-**Cold Reader.** Whatever wrote a document never grades it against these tests. A writer cannot un-know its session, so every sentence it wrote reads as necessary to it. The grader is a reader that never had the session. It asks first which question from a reader of the finished document each sentence answers. No question, no sentence.
+**Cold Reader.** A writer applies these tests as it writes, but the verdict on the finished document is never its own. A writer cannot un-know its session, so every sentence it wrote reads as necessary to it. The grader is a fresh agent that never had the session, and never a fork of the writer's conversation, which carries the session with it. It asks first which question from a reader of the finished document each sentence answers. No question, no sentence.
 
-**No Examples.** A statement never carries the instances it covers. The instances a writer lists are the ones its session happened to meet, so the list is incomplete the day it is written. A later writer then copies every trait those instances carry, not only the one they were chosen for. A list survives only where every item in it is meant to be used or copied, because then it is the data itself. A specimen of voice never qualifies. A rule that needs an example to be applied has a test not yet written.
+**No Examples.** A statement never carries the instances it covers. A list survives only where every item in it is meant to be used or copied, because then it is the data itself. A specimen of voice never qualifies. A rule that needs an example to be applied has a test not yet written.
 
 ## 2. Where it goes
 
@@ -26,14 +24,12 @@ What earns a place in a knowledge base's documents, where each sentence goes, an
 
 **One Way.** Knowledge moves from conversation to work in flight to settled truth, and never back.
 
-**No Memories.** Agent memory stays off. A memory lives on one machine, outside review, and drifts from a rubric that changes only through discussion. A lesson goes into the document it corrects.
+**No Memories.** Agent memory stays off. A lesson goes into the document it corrects.
 
 ## 3. How the rubric is kept
 
-**Fix by Subtraction.** A clause added after a failure takes the shape of that failure and no other. Find what caused the failure and remove it before adding anything.
+**Fix by Subtraction.** Find what caused a failure and remove it before adding anything. A rubric clause added after a failure stays only if a fresh model would make that failure unprompted.
 
 **Named Rules.** Every rule carries a short name, so a correction costs one word.
 
 **Just in Time.** A rule loads where the writing happens, not in a file every session reads.
-
-**The Corpus Teaches.** Writers copy what they read. A defect left standing in any document teaches its shape to the next writer. The rubric is a document too, and the last one a writer reads before writing. Compaction is therefore teaching, not tidying.
