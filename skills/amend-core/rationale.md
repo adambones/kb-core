@@ -53,3 +53,9 @@ The deletion reviewer compares against the code at the scope's start, because wh
 A reviewer returns what it half believes because verifying is the running session's step, and a reviewer that filters its own candidates is the commonest miss.
 
 The comment audit runs after the apply rather than before it, because an apply phase that followed the audit would land the only comments no fresh reader ever sees.
+
+## slack-log
+
+The markdown is redrawn from the store rather than appended to, because replies keep arriving under older parents, and an appended log files a reply away from its thread.
+
+Curation keeps or drops whole threads, because a thread trimmed to its relevant replies is a paraphrase of the conversation.

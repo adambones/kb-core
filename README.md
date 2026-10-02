@@ -51,6 +51,8 @@ The file every session reads — `AGENTS.md`, with `CLAUDE.md` a link to it for 
 | Audience — who messages reach | `MESSAGING.md`, `distill` | Always |
 | Product truth — what the product is | `distill` | Where the knowledge base has one |
 | Shared repositories — where its writing lands in a repository another audience reads | `checkin`, `audit-comments` | Where the knowledge base has one |
+| Verbatim source — where other parties' own words live | `slack-log` | Where the knowledge base follows Slack |
+| Followed channels — each Slack channel it mirrors, with its ID and any backfill floor | `slack-log` | Where the knowledge base follows Slack |
 
 ## Supply
 
@@ -62,6 +64,7 @@ The core leaves each knowledge base its orchestrators, the skills that sequence 
 | A recording step | Invokes `checkin` | Always |
 | A writer of code | `IMPLEMENTATION.md` §§1–2 before the first edit, then invokes `audit-comments` | Where the knowledge base writes code |
 | A reviewer of code | `IMPLEMENTATION.md` §3 | Where the knowledge base reviews code |
+| A schedule | Runs `slack-log`'s `sync` over the followed channels | Where the knowledge base follows Slack |
 
 ## Change
 
