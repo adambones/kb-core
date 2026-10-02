@@ -28,6 +28,13 @@ done
 
 Where those directories are themselves links to one skill directory the knowledge base keeps, link the core's skills into that directory once instead. A skill the core gains later needs its links in each knowledge base.
 
+`export-thread` serves every session on the machine, not only a knowledge base's, so link it once per machine into Claude Code's user-level skill directory as well — Claude Code being the one agent whose transcripts it reads:
+
+```sh
+mkdir -p ~/.claude/skills
+ln -s "$PWD/core/skills/export-thread" ~/.claude/skills/export-thread
+```
+
 Turn agent memory off in each agent's settings (No Memories). In Claude Code that is `"autoMemoryEnabled": false` in `.claude/settings.json`.
 
 Start the knowledge base's documents from the core alone, and give its first few a cold read before the corpus grows. Seeding it with another knowledge base's documents imports that one's traits into a new domain.

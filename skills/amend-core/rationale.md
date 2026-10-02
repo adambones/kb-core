@@ -40,6 +40,10 @@ The messaging rules are a file of their own because they compress, and compressi
 
 `improve-code` is shared although it invokes `audit-comments` and runs tests, because the audit is the core's and the tests are the repository's, and it leaves what remains to the knowledge base's writer of code and recording step without sequencing either.
 
+## export-thread
+
+The agent reads neither the transcript nor the export because a model that reads and rewrites a session pays for its whole length, where the script's one command costs the same however long the session ran.
+
 ## improve-code
 
 Reuse, simplification, efficiency and altitude each have an agent of their own, because an agent holding all four gives each less attention, and that attention is where the cleanup comes from. The correctness angles share one agent, because all three read the same lines and the same callers, and one context sees how their findings combine.
