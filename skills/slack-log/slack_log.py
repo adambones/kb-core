@@ -142,7 +142,7 @@ def parse_channel(text):
     return (name.group(1) if name else None), records
 
 
-# The connector's reply total is returned beside the replies, so a short read can be caught
+# The connector's reply total is returned beside each page's replies, so a short page can be caught
 def parse_thread(text):
     total = re.search(r"^=== THREAD REPLIES \((\d+) total\) ===$", text, re.M)
     records = []
@@ -188,24 +188,38 @@ def read_top(cid, oldest):
 
 
 def read_threads(cid, due):
-    threads, pending = {}, list(due)
-    # A run cut short returns part of its batch, so whatever it missed goes back on the queue
-    while pending:
-        batch = pending[:THREADS_PER_RUN]
+    # The connector pages a long thread whatever limit is asked for
+    # A thread's place outlives the run, so one longer than a run resumes where it stopped
+    chains = {ts: {"next": None, "replies": []} for ts in due}
+    threads = {}
+    while len(threads) < len(chains):
+        batch = [ts for ts in due if ts not in threads][:THREADS_PER_RUN]
+        lines = [f"{ts} cursor {chains[ts]['next']}" if chains[ts]["next"] else ts for ts in batch]
+        read = 0
         for _, args, payload in fetch(
-                f"For each message_ts below, call {READ_THREAD} with channel_id {cid}, that message_ts and limit "
-                "1000. Make no other calls and do not summarise. Then reply: done\n" + "\n".join(batch)):
-            if args.get("channel_id") != cid:
-                sys.exit(f"slack-log: thread read for {cid} asked for another channel")
-            if CURSOR.search(payload.get("pagination_info", "")):
-                sys.exit(f"slack-log: thread {args.get('message_ts')} has more than 1000 replies")
-            parent, replies, total = parse_thread(payload["messages"])
+                f"For each line below, call {READ_THREAD} with channel_id {cid}, the line's message_ts, limit 1000 "
+                "and the line's cursor where it names one. While a thread's pagination_info names a cursor and you "
+                f"have made fewer than {THREADS_PER_RUN} calls in all, call it again with that cursor and the same "
+                "channel_id, message_ts and limit. Make no other calls and do not summarise. Then reply: done\n"
+                + "\n".join(lines)):
+            ts = args.get("message_ts")
+            # The model retypes every argument and can hand one thread's cursor to another, so a page asked from anywhere but where its thread stands is dropped and the thread asked again
+            if args.get("channel_id") != cid or ts not in chains or ts in threads or (
+                    args.get("cursor") or None) != chains[ts]["next"]:
+                continue
+            chain = chains[ts]
+            _, replies, total = parse_thread(payload["messages"])
             if total and len(replies) != total:
-                sys.exit(f"slack-log: thread {parent['ts']} returned {len(replies)} of {total} replies")
-            threads[parent["ts"]] = replies
-        if not set(batch) & set(threads):
-            sys.exit(f"slack-log: no thread in a batch of {len(batch)} could be read for {cid}")
-        pending = [ts for ts in pending if ts not in threads]
+                sys.exit(f"slack-log: thread {ts} returned {len(replies)} of {total} replies on one page")
+            found = CURSOR.search(payload.get("pagination_info", ""))
+            chain["next"] = found.group(1) if found else None
+            chain["replies"] += replies
+            read += 1
+            if not chain["next"]:
+                threads[ts] = chain["replies"]
+        # A dropped page is asked again only while each run lands one, so a run that lands none ends the sync
+        if not read:
+            sys.exit(f"slack-log: no page of a batch of {len(batch)} threads could be read for {cid}")
     return threads
 
 
@@ -230,7 +244,8 @@ def sync(cid, out, lookback, since, label):
         print(f"#{store['name']}: archived, nothing to read")
         return
     # Replies surface only through their parent, so later syncs re-read a window of parents and a thread whose parent predates it stops updating
-    floor = datetime.strptime(since, "%Y-%m-%d").timestamp() if since else 0
+    # The connector hangs on oldest 0, so a backfill from the start asks from the first second instead
+    floor = datetime.strptime(since, "%Y-%m-%d").timestamp() if since else 1
     oldest = f"{time.time() - lookback * 86400:.6f}" if stored else f"{floor:.6f}"
     name, top = None, []
     for page in read_top(cid, oldest):
