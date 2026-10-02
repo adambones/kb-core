@@ -51,7 +51,7 @@ The file every session reads — `AGENTS.md`, with `CLAUDE.md` a link to it for 
 | Audience — who messages reach | `MESSAGING.md`, `distill` | Always |
 | Product truth — what the product is | `distill` | Where the knowledge base has one |
 | Shared repositories — where its writing lands in a repository another audience reads | `checkin`, `audit-comments` | Where the knowledge base has one |
-| Verbatim source — where other parties' own words live | `slack-log` | Where the knowledge base follows Slack |
+| Verbatim source — where other parties' own words live | `slack-log`, `export-thread` | Where the knowledge base follows Slack or keeps exported sessions |
 | Followed channels — each Slack channel it mirrors, with its ID and any backfill floor | `slack-log` | Where the knowledge base follows Slack |
 
 ## Supply

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import argparse
-import datetime
 import glob
 import json
 import os
@@ -9,6 +8,8 @@ import sys
 
 ASSISTANT = "Claude"
 SELF_COMMAND = "/export-thread"
+# The harness fences a paste in tags of its own, which are not the user's words
+PASTE_FENCE = re.compile(r"</?pasted_content[^>]*>")
 
 
 def transcript_path(session_id):
@@ -38,18 +39,17 @@ def human_text(content):
     if isinstance(content, str):
         command = re.search(r"<command-name>(.*?)</command-name>", content, re.S)
         if command is None:
-            return content.strip()
+            return PASTE_FENCE.sub("", content).strip()
         name = command.group(1).strip()
         if name == SELF_COMMAND:
             return None
         args = re.search(r"<command-args>(.*?)</command-args>", content, re.S)
         return f"{name} {args.group(1).strip() if args else ''}".strip()
-    parts = []
-    for block in content or []:
-        if block.get("type") == "text":
-            parts.append(block["text"].strip())
-        elif block.get("type") == "image":
-            parts.append("[image]")
+    parts = [PASTE_FENCE.sub("", block["text"]).strip() for block in content or [] if block.get("type") == "text"]
+    images = [block for block in content or [] if block.get("type") == "image"]
+    # A pasted image leaves a numbered marker in the prompt, so only a message carrying none gets ours
+    if images and not any("[Image #" in part for part in parts):
+        parts += ["[image]"] * len(images)
     return "\n\n".join(part for part in parts if part)
 
 
@@ -62,14 +62,17 @@ def speaker_of(text, user, parties):
 
 
 def read_session(path, user, parties):
-    turns, reply, title, humans, exporting = [], [], None, 0, False
+    turns, reply, humans, exporting, waiting = [], [], 0, False, False
 
-    def end_turn():
-        nonlocal exporting
+    def flush():
         # An export's own turn replies with nothing but the file it wrote
         if reply and not exporting:
             turns.append((ASSISTANT, "\n\n".join(reply)))
         reply.clear()
+
+    def end_turn():
+        nonlocal exporting
+        flush()
         exporting = False
 
     def said(text):
@@ -83,22 +86,21 @@ def read_session(path, user, parties):
         if record.get("isSidechain"):
             continue
         kind = record.get("type")
-        if kind == "custom-title":
-            title = record.get("customTitle") or title
-        elif kind == "assistant":
+        if kind == "assistant":
             message = record.get("message") or {}
             # The harness's stand-ins for a reply the model never gave
             if record.get("isApiErrorMessage") or message.get("model") == "<synthetic>":
                 continue
+            # A turn often answers before it works and ends on a status line, so all of its text is the reply
             for block in message.get("content") or []:
-                if block.get("type") == "tool_use":
-                    # Text before a tool call narrates the work, so the reply is only what the turn ends with
-                    reply.clear()
-                elif block.get("type") == "text" and block["text"].strip():
+                if block.get("type") == "text" and block["text"].strip():
                     reply.append(block["text"].strip())
+                elif block.get("type") == "tool_use":
+                    waiting = True
         elif kind == "user":
             content = (record.get("message") or {}).get("content")
             if isinstance(content, list) and all(block.get("type") == "tool_result" for block in content):
+                waiting = False
                 continue
             # Injected context continues a turn, where any other input opens one
             if not record.get("isMeta"):
@@ -113,58 +115,52 @@ def read_session(path, user, parties):
             attachment = record.get("attachment") or {}
             # A message typed while Claude works is absorbed into the running turn instead of stored as a user record
             if attachment.get("type") == "queued_command" and origin_kind(attachment) == "human":
+                # What the turn said before the message arrived answered what came before it
+                flush()
                 said(human_text(attachment.get("prompt")))
-    end_turn()
+    # A turn still waiting on a tool when the transcript ends is the one running this export
+    if not waiting:
+        end_turn()
     if humans == 0:
         sys.exit(f"export-thread: no message in {path} carries a human origin; the transcript format may have changed")
-    return turns, title
+    return turns
 
 
 def quote(text):
     return "\n".join(f"> {line}" if line.strip() else ">" for line in text.splitlines())
 
 
-def render(session_id, turns, user):
+def render(title, turns):
     merged = []
     for speaker, text in turns:
         if merged and merged[-1][0] == speaker:
             merged[-1][1].append(text)
         else:
             merged.append((speaker, [text]))
-    lines, number, previous = [f"Session: {session_id}"], 0, None
+    lines = [f"# {title}"]
+    # Quoted whole, so a heading or rule a speaker wrote cannot open a section of the page the export is pasted into
     for speaker, texts in merged:
-        # A round opens on the first block after a reply, so a pasted party's words share the number of the user's block above them
-        if number == 0 or previous == ASSISTANT:
-            number += 1
-        body = "\n\n".join(texts)
-        lines += ["", f"## Round {number} — {speaker}", "", quote(body) if speaker == user else body]
-        previous = speaker
+        lines += ["", f"**{speaker}:**", "", quote("\n\n".join(texts))]
     return "\n".join(lines) + "\n"
 
 
-def default_out(title, turns):
-    stem = re.sub(r"[^a-z0-9]+", "-", (title or turns[0][1]).lower()).strip("-")[:50].rstrip("-")
-    return os.path.join(os.getcwd(), f"{stem or 'conversation'}-{datetime.datetime.now():%Y-%m-%d-%H%M}.md")
-
-
 def main():
-    parser = argparse.ArgumentParser(description="Write a Claude Code session out as a thread of its dialogue")
+    parser = argparse.ArgumentParser(description="Write a Claude Code session out as a labeled transcript of its dialogue")
     parser.add_argument("session_id")
+    parser.add_argument("--title", required=True)
+    parser.add_argument("--out", required=True)
     parser.add_argument("--user", default="User")
     parser.add_argument("--party", action="append", default=[])
-    parser.add_argument("--out")
     args = parser.parse_args()
     names = [args.user, ASSISTANT, *args.party]
     if len(set(names)) < len(names):
         parser.error(f"--user, each --party and {ASSISTANT} need distinct names, since blocks under one name merge")
 
-    path = transcript_path(args.session_id)
-    turns, title = read_session(path, args.user, set(args.party))
-    out = args.out or default_out(title, turns)
-    os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
-    with open(out, "w", encoding="utf-8") as f:
-        f.write(render(args.session_id, turns, args.user))
-    print(out)
+    turns = read_session(transcript_path(args.session_id), args.user, set(args.party))
+    os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
+    with open(args.out, "w", encoding="utf-8") as f:
+        f.write(render(args.title, turns))
+    print(args.out)
 
 
 if __name__ == "__main__":
