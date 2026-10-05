@@ -1,0 +1,249 @@
+#!/usr/bin/env python3
+"""Pull the core, then link its rubric and skills into the knowledge base that holds it.
+
+Run as `core/sync`; `--no-pull` skips the fetch. Prints one line per change and one
+`attention:` line per thing a person must resolve. The only link it removes is one
+into the core whose target the core has retired.
+"""
+
+import argparse
+import os
+import subprocess
+import sys
+
+CORE = os.path.dirname(os.path.realpath(__file__))
+KB = os.path.dirname(CORE)
+SKILLS = os.path.join(CORE, "skills")
+
+# The directories every client discovers skills through; either may be a link to one directory the knowledge base keeps
+ADAPTERS = (".claude/skills", ".agents/skills")
+INSTRUCTIONS = ("AGENTS.md", "CLAUDE.md")
+FETCH_SECONDS = 60
+
+
+def shown(path):
+    return os.path.relpath(path, KB)
+
+
+def attention(line):
+    print("attention: " + line)
+
+
+def configured_ssh():
+    found = subprocess.run(["git", "-C", CORE, "config", "core.sshCommand"], capture_output=True, text=True)
+    return bool(found.stdout.strip())
+
+
+def git(*args, timeout=None):
+    # A prompt for a credential, a passphrase or a host key would hang an unattended run, so each fails instead
+    env = dict(os.environ, GIT_TERMINAL_PROMPT="0")
+    # The variable outranks core.sshCommand, so it is set only where the checkout configures no command of its own
+    if "GIT_SSH_COMMAND" not in env and not configured_ssh():
+        env["GIT_SSH_COMMAND"] = "ssh -o BatchMode=yes"
+    try:
+        return subprocess.run(["git", "-C", CORE, *args], capture_output=True, text=True, env=env, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return subprocess.CompletedProcess(args, 1, "", "fatal: no answer from the remote in %d seconds" % timeout)
+
+
+def reason(result):
+    # git prints its hints before the line that says what failed
+    lines = result.stderr.strip().splitlines()
+    failures = [line for line in lines if line.startswith(("fatal:", "error:"))]
+    return (failures or lines or ["git gave no reason"])[-1]
+
+
+def pull():
+    """Fetch, then fast-forward a clean checkout; True when the upstream ref is current."""
+    fetched = git("fetch", "-q", timeout=FETCH_SECONDS)
+    if fetched.returncode != 0:
+        attention("core/ was not fetched: " + reason(fetched))
+        return False
+    # With no upstream there is nothing to compare against, and every missing target would read as retired
+    if git("rev-parse", "--verify", "-q", "@{u}").returncode != 0:
+        attention("core/ tracks no upstream branch, so it was not pulled")
+        return False
+    # Sessions edit core/ in place, so a dirty tree is someone's work in progress
+    if git("status", "--porcelain").stdout.strip():
+        attention("core/ has uncommitted changes, so it was not pulled")
+        return True
+    before = git("rev-parse", "HEAD").stdout.strip()
+    # Fast-forward only: a merge belongs to checkin's pull, where a conflict stops for a person
+    merged = git("merge", "--ff-only", "-q", "@{u}")
+    if merged.returncode != 0:
+        attention("core/ was not pulled: " + reason(merged))
+        return True
+    after = git("rev-parse", "HEAD").stdout.strip()
+    # Each title, since a rename or a changed promise reaches another knowledge base only as a commit title
+    for title in git("log", "--format=%s", before + ".." + after).stdout.splitlines():
+        print("pulled: " + title)
+    return True
+
+
+def target_of(link):
+    return os.path.normpath(os.path.join(os.path.dirname(link), os.readlink(link)))
+
+
+def tracked(ref, relative):
+    return git("cat-file", "-e", "%s:%s" % (ref, relative)).returncode == 0
+
+
+def retirement(relative, fetched):
+    """Why a target missing from the checkout is gone for good, or None where it may not have been pulled yet."""
+    # Committed here but gone from the tree: this checkout's own edit retired it, and the link leaves with that edit
+    if tracked("HEAD", relative):
+        return "an uncommitted edit to core/ retired"
+    # Another machine may have added it, which only a fetch made this run can rule out
+    if fetched and not tracked("@{u}", relative):
+        return "the core has retired"
+    return None
+
+
+def prune(directory, fetched):
+    for name in sorted(os.listdir(directory)):
+        path = os.path.join(directory, name)
+        if not os.path.islink(path) or os.path.exists(path):
+            continue
+        target = target_of(path)
+        if not target.startswith(CORE + os.sep):
+            continue
+        why = retirement(os.path.relpath(target, CORE), fetched)
+        if why:
+            os.remove(path)
+            print("removed %s, whose target %s" % (shown(path), why))
+        else:
+            attention("%s does not resolve until core/ is pulled, so it was left" % shown(path))
+
+
+def link(path, target):
+    if os.path.islink(path):
+        if os.path.realpath(path) != os.path.realpath(target):
+            attention("%s links elsewhere, so the core's %s was not linked" % (shown(path), os.path.basename(target)))
+        return
+    if os.path.lexists(path):
+        attention("%s is the knowledge base's own, so the core's file of that name was not linked" % shown(path))
+        return
+    # Relative, so the committed link resolves on every machine that clones the core to core/
+    os.symlink(os.path.relpath(target, os.path.dirname(path)), path)
+    # A target only this checkout holds is someone's unfinished edit, whose link is that session's to commit
+    pending = not tracked("HEAD", os.path.relpath(target, CORE))
+    print("linked %s%s" % (shown(path), ", whose target core/ has not committed" if pending else ""))
+
+
+def skill_directories():
+    """The real directories behind the adapters, each once, creating both where a knowledge base has neither."""
+    paths = [os.path.join(KB, adapter) for adapter in ADAPTERS]
+    if not any(os.path.lexists(path) for path in paths):
+        for path in paths:
+            os.makedirs(path)
+            print("created %s" % shown(path))
+    found = []
+    for path in paths:
+        if not os.path.lexists(path):
+            continue
+        real = os.path.realpath(path)
+        if not os.path.isdir(path):
+            attention("%s is not a directory, so no skill was linked through it" % shown(path))
+        elif not real.startswith(KB + os.sep):
+            attention("%s leads outside the knowledge base, so no skill was linked through it" % shown(path))
+        elif real not in found:
+            found.append(real)
+    return found
+
+
+def link_rubric(fetched):
+    prune(KB, fetched)
+    # Every markdown file at the core's root but the README is a rubric the skills cite by its root name
+    for name in sorted(os.listdir(CORE)):
+        if name.endswith(".md") and name != "README.md":
+            link(os.path.join(KB, name), os.path.join(CORE, name))
+
+
+def link_skills(fetched):
+    skills = sorted(
+        name for name in os.listdir(SKILLS) if os.path.isfile(os.path.join(SKILLS, name, "SKILL.md"))
+    )
+    for directory in skill_directories():
+        prune(directory, fetched)
+        for name in skills:
+            link(os.path.join(directory, name), os.path.join(SKILLS, name))
+
+
+def ignore_core():
+    path = os.path.join(KB, ".gitignore")
+    text = ""
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as handle:
+            text = handle.read()
+    if any(line.strip() in ("/core/", "/core", "core/", "core") for line in text.splitlines()):
+        return
+    with open(path, "a", encoding="utf-8") as handle:
+        handle.write(("\n" if text and not text.endswith("\n") else "") + "/core/\n")
+    print("added /core/ to .gitignore")
+
+
+def always_roles():
+    """The roles core/README.md marks Always, by the name before any gloss."""
+    with open(os.path.join(CORE, "README.md"), encoding="utf-8") as handle:
+        text = handle.read()
+    if "\n## Bind" not in text:
+        return []
+    section = text.split("\n## Bind", 1)[1].split("\n## ", 1)[0]
+    roles = []
+    for line in section.splitlines():
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if len(cells) == 3 and cells[2] == "Always":
+            roles.append(cells[0].split(" — ")[0])
+    return roles
+
+
+def bindings_section(path):
+    """The text under the file's Bindings heading, or None where it has none."""
+    with open(path, encoding="utf-8") as handle:
+        lines = handle.read().splitlines()
+    headings, fenced = [], False
+    for index, line in enumerate(lines):
+        if line.startswith("```"):
+            fenced = not fenced
+        elif not fenced and line.startswith("#"):
+            headings.append((index, len(line) - len(line.lstrip("#")), line))
+    for position, (start, level, line) in enumerate(headings):
+        if "Bindings" in line:
+            end = next((i for i, depth, _ in headings[position + 1 :] if depth <= level), len(lines))
+            return "\n".join(lines[start:end])
+    return None
+
+
+def check_bindings():
+    """Name each role the knowledge base must bind and does not, since a binding is a judgment only a person makes."""
+    roles = always_roles()
+    if not roles:
+        attention("core/README.md lists no Always role, so no binding was checked")
+        return
+    candidates = [os.path.join(KB, name) for name in INSTRUCTIONS if os.path.isfile(os.path.join(KB, name))]
+    # Either file may be the other's link or stub, so the first holding the heading is the one declaring
+    section = next((s for s in (bindings_section(path) for path in candidates) if s is not None), None)
+    if section is None:
+        attention("neither %s has a Bindings section" % " nor ".join(INSTRUCTIONS))
+        return
+    for role in roles:
+        if role.casefold() not in section.casefold():
+            attention("the Bindings section names no %s, which every knowledge base binds" % role.lower())
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--no-pull", action="store_true", help="link from the checkout as it stands")
+    args = parser.parse_args()
+    # Only a checkout at core/ inside a repository knows which knowledge base it serves, and any other parent would gain links it never asked for
+    if os.path.basename(CORE) != "core" or not os.path.exists(os.path.join(KB, ".git")):
+        sys.exit("sync: %s is not a core/ checkout inside a knowledge base's repository" % CORE)
+    fetched = False if args.no_pull else pull()
+    link_rubric(fetched)
+    link_skills(fetched)
+    ignore_core()
+    check_bindings()
+
+
+if __name__ == "__main__":
+    main()
