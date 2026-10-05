@@ -5,7 +5,8 @@ description: Change the rules or skills every knowledge base shares — invoke b
 
 1. **Read `RUBRIC.md`.** Read it at this step, never from memory of an earlier
    read. It governs the change as it governs any document, and its §3 governs
-   changing a rule.
+   changing a rule. A script is code as well: read `IMPLEMENTATION.md` §§1–2
+   before editing one, and invoke `audit-comments` over it before step 6.
 
 2. **Edit the target, not the link.** Edit the file under `core/`, never a link to
    it from the knowledge base: a tool that writes by replacing a file turns a link
@@ -26,19 +27,19 @@ description: Change the rules or skills every knowledge base shares — invoke b
 5. **Keep every home true.** A rule keeps the reason its reader needs in order to
    act, and every other reason is cut. A reason cut from a rule leaves behind, in
    the rule's own words, any action it implied. A new role to bind or a new skill
-   to supply takes its row in `core/README.md`.
+   to supply takes its row in `core/README.md`. `core/sync` reads the Bind rows: it
+   looks for a role's name, before any gloss, in each knowledge base's Bindings
+   section, wherever the third cell says `Always`. Every markdown file at the
+   core's root but the README is linked into each knowledge base's root as a
+   rubric, so nothing else goes there. Renaming a skill or changing what it
+   promises breaks each skill that invokes it, so search this knowledge base for
+   those before the edit lands, and name the rename or the changed promise in the
+   commit title, which every other knowledge base's `checkin` reports when its
+   sync pulls the commit.
 
-6. **Cold read.** Spawn a fresh agent, never a fork of this conversation. Hand it
-   every file in the core, each named with the reader it is written for and the
-   changed ones marked, and nothing else. Ask it for three things in each changed
-   file, keyed by sentence:
-   - the question from that file's reader each sentence answers, or none
-   - every sentence that restates another, in any file
-   - every pair of sentences that cannot both be followed, in any file
-
-   It proposes and you dispose. A finding you decline stands only until the
-   person reading your report rules on it, so each is a line there with its
-   reason.
+6. **Cold read.** Run `core/sync --no-pull` where the change adds or renames a
+   skill or a root file, so the knowledge base discovers it, then invoke
+   `cold-read` over the change.
 
 7. **Leave the commit to `checkin`.** Report the core's change apart from the
    knowledge base's, since every knowledge base inherits it.
