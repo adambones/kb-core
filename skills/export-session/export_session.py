@@ -7,7 +7,7 @@ import re
 import sys
 
 ASSISTANT = "Claude"
-SELF_COMMAND = "/export-thread"
+SELF_COMMAND = "/export-session"
 # The harness fences a paste in tags of its own, which are not the user's words
 PASTE_FENCE = re.compile(r"</?pasted_content[^>]*>")
 
@@ -17,7 +17,7 @@ def transcript_path(session_id):
     root = os.environ.get("CLAUDE_CONFIG_DIR", os.path.expanduser("~/.claude"))
     matches = glob.glob(os.path.join(root, "projects", "*", f"{session_id}.jsonl"))
     if not matches:
-        sys.exit(f"export-thread: no transcript for session {session_id} under {root}/projects")
+        sys.exit(f"export-session: no transcript for session {session_id} under {root}/projects")
     return matches[0]
 
 
@@ -122,7 +122,7 @@ def read_session(path, user, parties):
     if not waiting:
         end_turn()
     if humans == 0:
-        sys.exit(f"export-thread: no message in {path} carries a human origin; the transcript format may have changed")
+        sys.exit(f"export-session: no message in {path} carries a human origin; the transcript format may have changed")
     return turns
 
 

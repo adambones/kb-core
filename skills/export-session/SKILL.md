@@ -1,11 +1,11 @@
 ---
-name: export-thread
+name: export-session
 description: Write this Claude Code session out as a labeled Markdown transcript — the user's messages and everything Claude said, none of its tool calls — for the user to hand another party
 ---
 
 Run one command, and read neither the transcript nor the file it writes.
 
-    python3 "${CLAUDE_SKILL_DIR}/export_thread.py" ${CLAUDE_SESSION_ID} --title <title> --out <path> [--user <name>] [--party <name>]...
+    python3 "${CLAUDE_SKILL_DIR}/export_session.py" ${CLAUDE_SESSION_ID} --title <title> --out <path> [--user <name>] [--party <name>]...
 
 - **`--title`** says in a few words what the session was about
 - **`--out`** is an absolute path: the one the user gave, or else
