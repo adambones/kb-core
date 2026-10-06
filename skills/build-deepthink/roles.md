@@ -1,9 +1,9 @@
 # Roles
 
-This file and the bundled `deepthink.md` are addressed to you, the agent reading this bundle. The exchange's directive is in `<user_instructions>`; your role in it is in `deepthink.md`.
+This file and the bundled `deepthink.md` are addressed to you, the agent reading this bundle. Your role in the exchange is in `deepthink.md`.
 
-You have no filesystem. You cannot create, edit or run anything, and must not claim to have done so. Everything you produce belongs in your response, reasoned from this bundle alone.
+`<user_instructions>` carries the exchange. `<ask>` is the user's ask in their own words. `<notes>` come from an agent with full access to the source, on what the ask needs and the bundle does not show. Where the exchange has run before, `<earlier_answer>` is the answer an earlier pass gave in another session, and `<check>` is that agent's check of it against the source.
 
-You generate. An agent with full access to the source checks your response against it before anything acts on it, and may reply with what it found. So be precise about paths, names and behaviour: a confident wrong specific costs more than a gap you name.
+The bundle is a selection of the source, so something absent from it may still exist.
 
-The exchange runs to three replies from you at most, and your first carries the most. Put everything into it rather than holding work back for a later one.
+You generate, and the same agent checks your response against the source before anything acts on it: a confident wrong specific costs more than a gap you name.

@@ -16,7 +16,7 @@ the subject this session, read its home for work in flight first.
 ## Modes
 
 A mode is a skill holding a `deepthink.md`, the role the deep-think agent takes in
-that kind of exchange, and optionally a `spar.md`, the checklist its answer is
+that kind of exchange, and optionally a `gate.md`, the checklist its answer is
 checked against. A mode's skill scopes the exchange and says what to pack, hide
 and ask for beyond the steps below, and where it replaces a step its rules win,
 its own checks included. Invoked directly, this skill builds an exchange that ends
@@ -45,7 +45,7 @@ correspondence where the knowledge base keeps one.
 
 ## The include list
 
-The budget is 200K characters of file contents, about 50K tokens, because
+The budget is 300K characters of file contents, about 80K tokens, because
 attention degrades well before the context fills. Over it, trim generated output
 first, then keep one or two representative neighbours rather than every one,
 excerpt a long file into a working copy outside the outbound slot that holds only
@@ -91,18 +91,26 @@ tool caches.
 ## The directive
 
 Write `.<stem>-instructions.md`, which the bundle carries as
-`<user_instructions>`. The bundle carries a file map, and the role files say who
-the agent is and who checks it, so the directive carries only the exchange:
+`<user_instructions>`: your notes in `<notes>`, then the user's ask in `<ask>`.
 
-- **Problem** — what is wrong or wanted, and how it shows
-- **Constraints** — what you found that the bundle does not already say. Where a
-  bundled document covers it, point there
-- **Desired outcome** — what done looks like
-- **Exit condition** — what the exchange is for and where it should stand when it
-  ends: a decision taken, a design settled, a plan ready to run
-- **Notes on files**, only where the map alone misleads: which files are the work
-  product and which are reference, and why an exemplar is there
-- **Specific concerns**, where there are any
+**The ask** is the user's own words, verbatim: the passage they mark as the ask,
+or else the message in which they asked for the exchange. Where the session's
+correspondence keeps a copy cleaned only of transcription errors, quote that
+copy. Where no message of theirs states an ask, ask them for one before building.
+The ask reaches the agent unedited, so the notes never restate, summarise or
+reframe it.
+
+**The notes** bridge the ask and the system, each a statement of fact about it.
+They carry what the ask needs and the bundle does not say: where the ask's words
+differ from the system as it stands, what a reference in the ask points to, the
+constraints you found, and which files are the work product and which are
+reference where the map alone misleads. A concern you can state as a fact goes in
+as that fact. One you cannot is your opinion, and it waits with your solution.
+
+**The landing condition** is where the exchange should stand when it lands: a
+decision taken, a design settled, a plan ready to run. Name it from the ask. It
+measures each answer when it comes back, so it goes in the brief; the agent takes
+its deliverable from the role file.
 
 ## Build
 
@@ -122,8 +130,9 @@ Read back the two inputs and the bundle's file map, and check:
 - `roles.md` and one `deepthink.md` are in the map
 - the rationale for every system touched, and the work-in-flight documents, are
   bundled rather than restated
-- the directive states problem, constraints, outcome and exit condition without
-  prescribing a solution
+- the ask comes last, in the user's words unaltered, and every note is a
+  statement of fact: no imperative, no sentence whose subject is the agent, no
+  solution
 - the content size the build prints is within budget
 - the build printed no warning, since each one names files the bundle left out
 
@@ -134,16 +143,34 @@ rules of the skill that keeps it, naming the stem, which is what ties the answer
 back to this exchange. Where the brief is your reply, name the bundle's path too,
 since nothing else tells the user which file to upload.
 
-The brief is what you decided and the user has not otherwise read: the directive's
-problem, constraints, outcome, exit condition and concerns, or what the mode's
-skill says its brief carries. A sentence whose subject is the bundle rather than
-the problem stays out, and so does any other report of the build, since its size
-changes no decision. A gap that does — no exemplar exists, a doc the exchange needs
-is missing — goes in the brief, marked as a gap.
+The brief is what you decided and the user has not otherwise read: your notes and
+the landing condition, or what the mode's skill says its brief carries. A sentence
+whose subject is the bundle rather than the problem stays out, and so does any
+other report of the build, since its size changes no decision. A gap that does —
+no exemplar exists, a doc the exchange needs is missing — goes in the brief,
+marked as a gap.
 
 ## When the answer comes back
 
 Check each concrete claim against the source of truth before anything acts on it,
-and reply as a peer with what you found, at most three times. Where the knowledge
-base supplies a skill for this, it runs instead, and a mode's `spar.md` is the
-checklist it reads.
+measure the answer against the landing condition, and give the user what you found
+where the knowledge base keeps session correspondence, or else as your reply. An
+answer that restates the last with the check absorbed and nothing new is the
+signal to land: to settle what the exchange decided into the knowledge base's
+homes. Where the knowledge base supplies a skill for the check, it runs instead,
+and a mode's `gate.md` is the checklist it reads.
+
+### Another pass
+
+Another pass runs in a fresh session of the agent. Where the user wants one,
+rebuild under the same stem, which overwrites the bundle. Add any file the answer reasoned
+about without being shown. Read the ask from the current directive before
+rewriting it, then write, in order: `<notes>`, revised where the check found one
+wrong; the last answer verbatim in `<earlier_answer>`; your check of it in
+`<check>`; and the ask unchanged in `<ask>`. The answer and the check ride on top
+of the budget, which counts file contents only.
+
+The check follows the notes' rule, stating what the source shows about each
+claim, and a decision the user takes after reading it goes in as a fact. Only the last answer and its check travel; earlier passes stay
+in the session's correspondence. The pass's brief names the notes you revised and
+the files the include list gained, since the check is already where the user reads.

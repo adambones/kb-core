@@ -48,8 +48,9 @@ The core leaves each knowledge base its orchestrators, the skills that sequence 
 | A writer of code | Reads `IMPLEMENTATION.md` §§1–2 before the first edit, then invokes `audit-comments` | Where the knowledge base writes code |
 | A reviewer of code | Reads `IMPLEMENTATION.md` §3 | Where the knowledge base reviews code |
 | A schedule | Runs `slack-log`'s `sync` over the followed channels | Where the knowledge base follows Slack |
-| A deep-think mode | Holds a `deepthink.md`, which `build-deepthink` bundles, and optionally a `spar.md` its answer is checked against | Where the knowledge base runs a kind of exchange the core's default does not |
-| A checker of deep-think answers | Checks each answer against the source of truth under the mode's `spar.md`, and replies | Where the knowledge base runs deep-think exchanges and wants more than `build-deepthink`'s own last step |
+| A deep-think mode | Holds a `deepthink.md`, which `build-deepthink` bundles, and optionally a `gate.md` its answer is checked against | Where the knowledge base runs a kind of exchange the core's default does not |
+| A checker of deep-think answers | Checks each answer against the source of truth under the mode's `gate.md`, and writes the check a further pass carries | Where the knowledge base runs deep-think exchanges and wants more than `build-deepthink`'s own last step |
+
 ## Tasks
 
 A knowledge base that runs its tasks through make sets the variables `core/kb.mk`'s header names, then `include`s it from its root `Makefile`. `include` rather than `-include`, so a missing core fails loudly. A rule for `core/kb.mk` below the include, which clones the core and runs `core/sync`, lets the first `make` on a fresh checkout restore it; make reads the whole file first, so that rule's recipe must not depend on anything `kb.mk` defines.
