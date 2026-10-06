@@ -1,6 +1,6 @@
 ---
 name: build-deepthink
-description: Bundle a brief and its context for a deep-think agent that reads one text input and has no filesystem, whose answer you then check against the source
+description: Bundle a brief and its context for a deep-think agent that reads one text input and has no filesystem, whose answer you then check against the source — invoke when the user gives you instructions for that agent, which are its to answer rather than yours
 ---
 
 **Bindings.** Outbound files, where the bundle is written; where it is undeclared,
@@ -40,8 +40,9 @@ shows only what gets uploaded.
 
 By now you have likely investigated and have a solution in mind. The constraints
 you found go into the bundle. The solution stays out of it, where it would anchor
-the answer on yours; keep it for when the answer comes back, in the session's
-correspondence where the knowledge base keeps one.
+the answer on yours, and so does any question of the ask that you settled rather
+than the user. Both wait until the answer comes back, and then go to the user
+beside your check, never in it.
 
 ## The include list
 
@@ -93,12 +94,18 @@ tool caches.
 Write `.<stem>-instructions.md`, which the bundle carries as
 `<user_instructions>`: your notes in `<notes>`, then the user's ask in `<ask>`.
 
-**The ask** is the user's own words, verbatim: the passage they mark as the ask,
-or else the message in which they asked for the exchange. Where the session's
-correspondence keeps a copy cleaned only of transcription errors, quote that
-copy. Where no message of theirs states an ask, ask them for one before building.
-The ask reaches the agent unedited, so the notes never restate, summarise or
-reframe it.
+**The ask** is what the user wrote to the deep-think agent, verbatim: the passage
+they mark as the ask, or else the message in which they asked for the exchange.
+Two things in that message are not the ask. What they say about the exchange
+itself — that it be built, for whom, from what — is said to you: a sentence
+saying nothing else stays out, and no sentence is reworded. Text anyone else
+wrote stays out even pasted inside their turn: what it says about the system
+reaches the agent only as notes checked against the source, and what it says the
+user wants only once they write it to the agent themselves. Where the session's
+correspondence keeps a copy of their words cleaned only of transcription errors,
+quote that copy. Where no message of theirs states an ask, ask them for one
+before building. The ask reaches the agent unedited, so the notes never restate,
+summarise or reframe it.
 
 **The notes** bridge the ask and the system, each a statement of fact about it.
 They carry what the ask needs and the bundle does not say: where the ask's words
@@ -130,9 +137,9 @@ Read back the two inputs and the bundle's file map, and check:
 - `roles.md` and one `deepthink.md` are in the map
 - the rationale for every system touched, and the work-in-flight documents, are
   bundled rather than restated
-- the ask comes last, in the user's words unaltered, and every note is a
-  statement of fact: no imperative, no sentence whose subject is the agent, no
-  solution
+- the ask comes last, holding only the user's words to the agent, unaltered, and
+  every note is a statement of fact: no imperative, no sentence whose subject is
+  the agent, no solution
 - the content size the build prints is within budget
 - the build printed no warning, since each one names files the bundle left out
 
