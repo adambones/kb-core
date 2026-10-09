@@ -31,8 +31,9 @@ The file every session reads — `AGENTS.md`, with `CLAUDE.md` a link to it for 
 | Audience — who messages reach | `MESSAGING.md`, `distill` | Always |
 | Product truth — what the product is | `distill` | Where the knowledge base has one |
 | Shared repositories — where its writing lands in a repository another audience reads | `checkin`, `audit-comments` | Where the knowledge base has one |
-| Verbatim source — where other parties' own words live | `slack-log`, `export-session` | Where the knowledge base follows Slack or keeps exported sessions |
+| Verbatim source — where other parties' own words live | `slack-log` | Where the knowledge base follows Slack |
 | Followed channels — each Slack channel it mirrors, with its ID and any backfill floor | `slack-log` | Where the knowledge base follows Slack |
+| Session exports — where a session's own transcript is written | `export-session` | Where exports should land without the user naming a path |
 | Outbound files — where a file bound for another party is written | `build-deepthink` | Where the knowledge base runs deep-think rounds |
 | Session correspondence — where a session's exchange is kept, and the skill that keeps it | `build-deepthink` | Where the knowledge base keeps one outside the conversation |
 

@@ -9,9 +9,11 @@ Run one command, and read neither the transcript nor the file it writes.
 
 - **`--title`** says in a few words what the session was about
 - **`--out`** is an absolute path: the one the user gave, or else
-  `sessions/<YYYY-MM-DD>-<topic>.md` under the knowledge base's verbatim source,
-  dated today, its topic the title lowercased with each run of anything but letters
-  and digits made a hyphen. Where there is neither, ask the user for a path
+  `<YYYY-MM-DD>-<topic>.md` in the directory the knowledge base binds as its
+  session exports, resolved from the knowledge base's root, dated today, its topic
+  the title lowercased with each run of anything but letters and digits made a
+  hyphen and none left at either end. Where there is neither, ask the user for a
+  path
 - **`--user`** is the user's name, where the session's instructions give one
 - **`--party`** names each other party whose reply the user pasted as a message
   of its own, opening with a line holding only that name, so the reply comes out
