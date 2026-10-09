@@ -11,7 +11,7 @@ git clone https://github.com/adambones/kb-core.git core
 core/sync
 ```
 
-`core/sync` links each rubric file at the knowledge base's root, where the skills cite it, and each skill into every directory the agents discover skills from — `.claude/skills` for Claude Code, `.agents/skills` for Codex and Gemini CLI — creating both where neither exists. It adds `/core/` to `.gitignore`, and names each Always role below that the knowledge base has not bound. `checkin` runs it each time, so what the core gains reaches each knowledge base with no step of its own.
+`core/sync` links each rubric file at the knowledge base's root, where the skills cite it, and each skill into every directory the agents discover skills from — `.claude/skills` for Claude Code, `.agents/skills` for Codex and Gemini CLI — creating both where neither exists. It adds `/core` to `.gitignore`, creates each slot below with a line of its own there, and names each Always role below that the knowledge base has not bound. `checkin` runs it each time, so what the core gains reaches each knowledge base with no step of its own.
 
 The checkout sits inside the knowledge base so every committed link is relative and resolves on any machine.
 
@@ -28,14 +28,24 @@ The file every session reads — `AGENTS.md`, with `CLAUDE.md` a link to it for 
 | Source of truth | `RUBRIC.md`, `teach-me` | Always |
 | Homes | `RUBRIC.md` | Always |
 | Lifecycles | `RUBRIC.md` | Always |
+| Slots | `RUBRIC.md` | Always |
 | Audience — who messages reach | `MESSAGING.md`, `distill` | Always |
 | Product truth — what the product is | `distill` | Where the knowledge base has one |
 | Shared repositories — where its writing lands in a repository another audience reads | `checkin`, `audit-comments` | Where the knowledge base has one |
 | Verbatim source — where other parties' own words live | `slack-log` | Where the knowledge base follows Slack |
 | Followed channels — each Slack channel it mirrors, with its ID and any backfill floor | `slack-log` | Where the knowledge base follows Slack |
-| Session exports — where a session's own transcript is written | `export-session` | Where exports should land without the user naming a path |
-| Outbound files — where a file bound for another party is written | `build-deepthink` | Where the knowledge base runs deep-think rounds |
 | Session correspondence — where a session's exchange is kept, and the skill that keeps it | `build-deepthink` | Where the knowledge base keeps one outside the conversation |
+
+## Slots
+
+The core fixes these at the knowledge base's root, each gitignored, so no knowledge base declares them and no skill asks where they are. Carrying one between machines is the knowledge base's own concern, and a knowledge base may keep one of the same name inside a subdirectory of its own. A row names its slot as `` `name/` ``, which is how `core/sync` finds it.
+
+| Slot | Holds |
+|------|-------|
+| `code/` | Clones of the external repositories the knowledge base's agents work across |
+| `outbox/` | Bundles built for another party to read, flat, beside the inputs each was built from |
+| `scratch/` | Working files, safe for anything to delete |
+| `sessions/` | Agent sessions exported as transcripts |
 
 ## Supply
 
@@ -54,7 +64,7 @@ The core leaves each knowledge base its orchestrators, the skills that sequence 
 
 ## Tasks
 
-A knowledge base that runs its tasks through make sets the variables `core/kb.mk`'s header names, then `include`s it from its root `Makefile`. `include` rather than `-include`, so a missing core fails loudly. A rule for `core/kb.mk` below the include, which clones the core and runs `core/sync`, lets the first `make` on a fresh checkout restore it; make reads the whole file first, so that rule's recipe must not depend on anything `kb.mk` defines.
+Every knowledge base runs its tasks through make, so `make help` is the map an agent reads on arrival, and the file every session reads names `make help` as that map. Its root `Makefile` sets the variables `core/kb.mk`'s header names, then `include`s it. `include` rather than `-include`, so a missing core fails loudly. A rule for `core/kb.mk` below the include, which clones the core and runs `core/sync`, lets the first `make` on a fresh checkout restore it; make reads the whole file first, so that rule's recipe must not depend on anything `kb.mk` defines.
 
 ## Change
 

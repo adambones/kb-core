@@ -3,8 +3,7 @@ name: build-deepthink
 description: Bundle a brief and its context for a deep-think agent that reads one text input and has no filesystem, whose answer you then check against the source — invoke when the user gives you instructions for that agent, which are its to answer rather than yours
 ---
 
-**Bindings.** Outbound files, where the bundle is written; where it is undeclared,
-ask for a path. Session correspondence, where the brief is published; where it is
+**Bindings.** Session correspondence, where the brief is published; where it is
 undeclared, the brief is your reply.
 
 The deep-think agent generates: it reads the bundle once, reasons at length and
@@ -27,7 +26,7 @@ in a decision, under its own `deepthink.md`.
 Name the exchange with a short kebab-case stem, following whatever convention the
 knowledge base sets for naming its work, and state it without asking. Ask only
 where the answer would change the include list and the conversation does not
-settle it. Three files in the outbound slot share the stem:
+settle it. Three files in `outbox/` share the stem:
 
     .<stem>-include.txt       what the bundle holds
     .<stem>-instructions.md   the directive
@@ -49,7 +48,7 @@ beside your check, never in it.
 The budget is 300K characters of file contents, about 80K tokens, because
 attention degrades well before the context fills. Over it, trim generated output
 first, then keep one or two representative neighbours rather than every one,
-excerpt a long file into a working copy outside the outbound slot that holds only
+excerpt a long file into a working copy in `scratch/<stem>/` that holds only
 the sections that matter, and cut the least essential category. Under it, do not
 pad.
 
@@ -123,7 +122,7 @@ its deliverable from the role file.
 
 From the knowledge base's root, without asking:
 
-    python3 core/skills/build-deepthink/bundle.py --stem <stem> --out <outbound slot>
+    python3 core/skills/build-deepthink/bundle.py --stem <stem> --out outbox
 
 A change to the directive later is a rerun, not a decision.
 

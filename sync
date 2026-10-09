@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pull the core, then link its rubric and skills into the knowledge base that holds it.
+"""Pull the core, link its rubric and skills into the knowledge base that holds it, and create and ignore the slots its README names.
 
 Run as `core/sync`; `--no-pull` skips the fetch. Prints one line per change and one
 `attention:` line per thing a person must resolve. The only link it removes is one
@@ -8,6 +8,7 @@ into the core whose target the core has retired.
 
 import argparse
 import os
+import re
 import subprocess
 import sys
 
@@ -169,32 +170,70 @@ def link_skills(fetched):
             link(os.path.join(directory, name), os.path.join(SKILLS, name))
 
 
-def ignore_core():
+def gitignore(name):
     path = os.path.join(KB, ".gitignore")
     text = ""
     if os.path.exists(path):
         with open(path, encoding="utf-8") as handle:
             text = handle.read()
-    if any(line.strip() in ("/core/", "/core", "core/", "core") for line in text.splitlines()):
+    # Any line already naming the root entry counts, a partial ignore under it included, so a knowledge base's own choice stands
+    if any(line.strip().lstrip("/").split("/")[0] == name for line in text.splitlines()):
         return
+    # No trailing slash, which would match a directory but never a link standing in for one
     with open(path, "a", encoding="utf-8") as handle:
-        handle.write(("\n" if text and not text.endswith("\n") else "") + "/core/\n")
-    print("added /core/ to .gitignore")
+        handle.write(("\n" if text and not text.endswith("\n") else "") + "/%s\n" % name)
+    print("added /%s to .gitignore" % name)
+
+
+def readme_section(heading):
+    with open(os.path.join(CORE, "README.md"), encoding="utf-8") as handle:
+        text = handle.read()
+    marker = "\n## %s\n" % heading
+    return text.split(marker, 1)[1].split("\n## ", 1)[0] if marker in text else ""
+
+
+def table_rows(heading):
+    return [
+        [cell.strip() for cell in line.strip().strip("|").split("|")]
+        for line in readme_section(heading).splitlines()
+        if line.strip().startswith("|")
+    ]
 
 
 def always_roles():
     """The roles core/README.md marks Always, by the name before any gloss."""
-    with open(os.path.join(CORE, "README.md"), encoding="utf-8") as handle:
-        text = handle.read()
-    if "\n## Bind" not in text:
-        return []
-    section = text.split("\n## Bind", 1)[1].split("\n## ", 1)[0]
-    roles = []
-    for line in section.splitlines():
-        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
-        if len(cells) == 3 and cells[2] == "Always":
-            roles.append(cells[0].split(" — ")[0])
-    return roles
+    return [cells[0].split(" — ")[0] for cells in table_rows("Bind") if len(cells) == 3 and cells[2] == "Always"]
+
+
+def slots():
+    """The directories core/README.md's Slots table names; a row holding anything but one bare top-level name is skipped."""
+    named = (re.fullmatch(r"`([A-Za-z0-9][A-Za-z0-9._-]*)/`", cells[0]) for cells in table_rows("Slots"))
+    return [match.group(1) for match in named if match]
+
+
+def kb_tracks(name):
+    found = subprocess.run(["git", "-C", KB, "ls-files", "--", name], capture_output=True, text=True)
+    return bool(found.stdout.strip())
+
+
+def make_slots():
+    names = slots()
+    if not names:
+        attention("core/README.md names no slot, so none was created")
+    for name in names:
+        path = os.path.join(KB, name)
+        # A link to a directory counts as the slot, being how a knowledge base carries one between machines
+        if not os.path.isdir(path):
+            if os.path.lexists(path):
+                attention("%s is not a directory, so the core's slot of that name was not created" % name)
+                continue
+            os.makedirs(path)
+            print("created %s/" % name)
+        # An ignore line would leave tracked files tracked and hide every new one beside them from git
+        if kb_tracks(name):
+            attention("%s is tracked by git, so it was not ignored as the core's slot" % name)
+            continue
+        gitignore(name)
 
 
 def bindings_section(path):
@@ -241,7 +280,9 @@ def main():
     fetched = False if args.no_pull else pull()
     link_rubric(fetched)
     link_skills(fetched)
-    ignore_core()
+    # The checkout is cloned rather than created, so it is no row in the Slots table
+    gitignore("core")
+    make_slots()
     check_bindings()
 
 

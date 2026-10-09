@@ -2,7 +2,7 @@
 
 **Terse is durable.** Every sentence in a durable document is charged to every reader it will ever have, so each earns its place under the rules below or goes.
 
-**Bindings.** Each knowledge base names the three things this rubric leaves open, in the file every session reads. Its source of truth is the artifact that is the specification. Its homes are the documents that hold substance. Its lifecycles say where settled truth, work in flight and conversation each live. Each binding names a thing, never a step or a rule.
+**Bindings.** Each knowledge base names the four things this rubric leaves open, in the file every session reads. Its source of truth is the artifact that is the specification. Its homes are the documents that hold substance. Its lifecycles say where settled truth, work in flight and conversation each live. Its slots are its top-level directories beyond those `core/README.md` §Slots fixes, each with what it admits and whether git tracks it. Each binding names a thing, never a step or a rule.
 
 ## 1. What earns a place
 
@@ -23,6 +23,8 @@
 **Altitude.** A fact goes in the narrowest document whose scope contains it. A misfiled fact is moved, never dropped.
 
 **One Way.** Knowledge moves from conversation to work in flight to settled truth, and never back.
+
+**Declared Slots.** A writer creates no top-level directory: each is a slot the knowledge base declares or the core fixes. Where none admits its file, the writer raises the gap with the user.
 
 **No Memories.** Agent memory stays off. A lesson goes into the document it corrects.
 

@@ -8,6 +8,7 @@ Code style, insight comments and structural health. Skills own procedure; a repo
 - No divider comments
 - Abbreviate to a single letter or not at all, never by chomping middle letters
 - Format with the repository's own formatter at the version it pins, so a change carries no formatting drift and masks none
+- A script a knowledge base keeps outside its skills runs through a `make` target whose `##` description says what it does
 
 ## 2. Insight comments
 

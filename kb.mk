@@ -34,5 +34,5 @@ help: ## Show available commands (this list)
 print-%:
 	@echo $*=$($*)
 
-core-sync: ## Pull the core and link its rubric and skills into the knowledge base (Usage: make core-sync [NO_PULL=1])
+core-sync: ## Pull the core, link its rubric and skills into the knowledge base and create its slots (Usage: make core-sync [NO_PULL=1])
 	@"$(ROOT)/core/sync" $(if $(NO_PULL),--no-pull)
