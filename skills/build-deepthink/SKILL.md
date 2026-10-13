@@ -26,7 +26,9 @@ in a decision, under its own `deepthink.md`.
 Name the exchange with a short kebab-case stem, following whatever convention the
 knowledge base sets for naming its work, and state it without asking. Ask only
 where the answer would change the include list and the conversation does not
-settle it. Three files in `outbox/` share the stem:
+settle it. A stem whose files already sit in `outbox/` belongs to another
+exchange unless it is this one's, so pick another. Three files in `outbox/`
+share the stem:
 
     .<stem>-include.txt       what the bundle holds
     .<stem>-instructions.md   the directive
