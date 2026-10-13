@@ -34,7 +34,7 @@ The file every session reads — `AGENTS.md`, with `CLAUDE.md` a link to it for 
 | Shared repositories — where its writing lands in a repository another audience reads | `checkin`, `audit-comments` | Where the knowledge base has one |
 | Verbatim source — where other parties' own words live | `slack-log` | Where the knowledge base follows Slack |
 | Followed channels — each Slack channel it mirrors, with its ID and any backfill floor | `slack-log` | Where the knowledge base follows Slack |
-| Session correspondence — where a session's exchange is kept, and the skill that keeps it | `build-deepthink` | Where the knowledge base keeps one outside the conversation |
+| Session correspondence — where a session's exchange is kept, and the skill that keeps it | `build-deepthink`, `deliberate` | Where the knowledge base keeps one outside the conversation |
 
 ## Slots
 
