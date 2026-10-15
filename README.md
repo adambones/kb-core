@@ -11,7 +11,7 @@ git clone https://github.com/adambones/kb-core.git core
 core/sync
 ```
 
-`core/sync` links each rubric file at the knowledge base's root, where the skills cite it, and each skill into every directory the agents discover skills from — `.claude/skills` for Claude Code, `.agents/skills` for Codex and Gemini CLI — creating both where neither exists. It adds `/core` to `.gitignore`, creates each slot below with a line of its own there, and names each Always role below that the knowledge base has not bound. `checkin` runs it each time, so what the core gains reaches each knowledge base with no step of its own.
+`core/sync` links each rubric file at the knowledge base's root, where the skills cite it, and each skill into every directory the agents discover skills from — `.claude/skills` for Claude Code, `.agents/skills` for Codex and Gemini CLI — creating both where neither exists. It adds `/core` to `.gitignore`, creates each slot below, with a line of its own there for each the table marks ignored, and names each Always role below that the knowledge base has not bound. `checkin` runs it each time, so what the core gains reaches each knowledge base with no step of its own.
 
 The checkout sits inside the knowledge base so every committed link is relative and resolves on any machine.
 
@@ -34,18 +34,18 @@ The file every session reads — `AGENTS.md`, with `CLAUDE.md` a link to it for 
 | Shared repositories — where its writing lands in a repository another audience reads | `checkin`, `audit-comments` | Where the knowledge base has one |
 | Verbatim source — where other parties' own words live | `slack-log` | Where the knowledge base follows Slack |
 | Followed channels — each Slack channel it mirrors, with its ID and any backfill floor | `slack-log` | Where the knowledge base follows Slack |
-| Session correspondence — where a session's exchange is kept, and the skill that keeps it | `build-deepthink`, `deliberate` | Where the knowledge base keeps one outside the conversation |
 
 ## Slots
 
-The core fixes these at the knowledge base's root, each gitignored, so no knowledge base declares them and no skill asks where they are. Carrying one between machines is the knowledge base's own concern, and a knowledge base may keep one of the same name inside a subdirectory of its own. A row names its slot as `` `name/` ``, which is how `core/sync` finds it.
+The core fixes these at the knowledge base's root, so no knowledge base declares them and no skill asks where they are. Carrying an ignored one between machines is the knowledge base's own concern, and a knowledge base may keep one of the same name inside a subdirectory of its own. A row names its slot as `` `name/` ``, which is how `core/sync` finds it, and a slot whose row has no Git cell is gitignored.
 
-| Slot | Holds |
-|------|-------|
-| `code/` | Clones of the external repositories the knowledge base's agents work across |
-| `outbox/` | Bundles built for another party to read, flat, beside the inputs each was built from |
-| `scratch/` | Working files, safe for anything to delete |
-| `sessions/` | Agent sessions exported as transcripts |
+| Slot | Holds | Git |
+|------|-------|-----|
+| `code/` | Clones of the external repositories the knowledge base's agents work across | ignored |
+| `deliberations/` | One record per `deliberate` run. The run writes it, the session that hears the user's ruling on it appends that ruling verbatim and dated, and nothing else edits it | tracked |
+| `scratch/` | Working files, safe for anything to delete | ignored |
+| `sessions/` | Agent sessions exported as transcripts | ignored |
+| `suggestions/` | One file per skill or root document, a line per change a session saw it needed and did not make | tracked |
 
 ## Supply
 
@@ -54,13 +54,12 @@ The core leaves each knowledge base its orchestrators, the skills that sequence 
 | Skill | Does | Needed |
 |-------|------|--------|
 | A writer of documents | Reads `RUBRIC.md` | Always |
-| A writer of skills or root documents | Invokes `cold-read` after every change | Always |
+| A writer of skills or root documents | Reads `suggestions/<name>.md` for each file it changes, deletes each line the change settles, puts each it leaves to the user, and invokes `cold-read` after the change | Always |
 | A recording step | Invokes `checkin` | Always |
 | A writer of code | Reads `IMPLEMENTATION.md` §§1–2 before the first edit, then invokes `audit-comments` | Where the knowledge base writes code |
 | A reviewer of code | Reads `IMPLEMENTATION.md` §3 | Where the knowledge base reviews code |
 | A schedule | Runs `slack-log`'s `sync` over the followed channels | Where the knowledge base follows Slack |
-| A deep-think mode | Holds a `deepthink.md`, which `build-deepthink` bundles, and optionally a `gate.md` its answer is checked against | Where the knowledge base runs a kind of exchange the core's default does not |
-| A checker of deep-think answers | Checks each answer against the source of truth under the mode's `gate.md`, and writes the check a further pass carries | Where the knowledge base runs deep-think exchanges and wants more than `build-deepthink`'s own last step |
+| A mode of `deliberate` | Holds a `role.md`, the deliverable its panel writes, and optionally a `check.md` its critics and check grade against; writes a `seal.txt` where the panel must not read beyond a list; invokes `deliberate` with those paths on its input's first line, and carries the record out once the run returns | Where the knowledge base asks for a deliverable other than a decision |
 
 ## Tasks
 

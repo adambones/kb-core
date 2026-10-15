@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pull the core, link its rubric and skills into the knowledge base that holds it, and create and ignore the slots its README names.
+"""Pull the core, link its rubric and skills into the knowledge base that holds it, and create the slots its README names, ignoring each it marks ignored.
 
 Run as `core/sync`; `--no-pull` skips the fetch. Prints one line per change and one
 `attention:` line per thing a person must resolve. The only link it removes is one
@@ -206,9 +206,14 @@ def always_roles():
 
 
 def slots():
-    """The directories core/README.md's Slots table names; a row holding anything but one bare top-level name is skipped."""
-    named = (re.fullmatch(r"`([A-Za-z0-9][A-Za-z0-9._-]*)/`", cells[0]) for cells in table_rows("Slots"))
-    return [match.group(1) for match in named if match]
+    """Each directory core/README.md's Slots table names, with whether git tracks it; a row holding anything but one bare top-level name is skipped."""
+    found = []
+    for cells in table_rows("Slots"):
+        match = re.fullmatch(r"`([A-Za-z0-9][A-Za-z0-9._-]*)/`", cells[0])
+        if match:
+            # A row with no Git cell is ignored, so only a cell saying tracked keeps a slot in git
+            found.append((match.group(1), len(cells) > 2 and cells[2].strip(" .").lower() == "tracked"))
+    return found
 
 
 def kb_tracks(name):
@@ -216,11 +221,17 @@ def kb_tracks(name):
     return bool(found.stdout.strip())
 
 
+def kb_ignores(name):
+    # A probe path rather than the directory, so a pattern that ignores only its contents counts too
+    found = subprocess.run(["git", "-C", KB, "check-ignore", "-q", "--", "%s/probe" % name], capture_output=True, text=True)
+    return found.returncode == 0
+
+
 def make_slots():
-    names = slots()
-    if not names:
+    named = slots()
+    if not named:
         attention("core/README.md names no slot, so none was created")
-    for name in names:
+    for name, tracked in named:
         path = os.path.join(KB, name)
         # A link to a directory counts as the slot, being how a knowledge base carries one between machines
         if not os.path.isdir(path):
@@ -229,6 +240,10 @@ def make_slots():
                 continue
             os.makedirs(path)
             print("created %s/" % name)
+        if tracked:
+            if kb_ignores(name):
+                attention("%s is the core's tracked slot, but .gitignore hides it from git" % name)
+            continue
         # An ignore line would leave tracked files tracked and hide every new one beside them from git
         if kb_tracks(name):
             attention("%s is tracked by git, so it was not ignored as the core's slot" % name)

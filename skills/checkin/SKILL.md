@@ -16,8 +16,10 @@ diff, not from session memory.
 2. **Read `MESSAGING.md`.** It holds the writing rules the title and body apply.
    Do not write from memory of them.
 
-3. **Stage.** Only what this session changed — other dirty files belong to
-   parallel sessions.
+3. **Stage.** Where a skill or root document this session used stalled, misled
+   or slowed it, and `suggestions/` does not already say so, invoke `suggest`
+   first, so the line rides in this commit. Then stage only what this session
+   changed — other dirty files belong to parallel sessions.
    - **Commit by pathspec — `git add` each new path, then `git commit <paths>`,
      never a bare `git commit`.** The index is shared with every session on the
      machine, so careful staging is not enough: a sibling that has staged its own

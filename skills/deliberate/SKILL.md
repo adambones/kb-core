@@ -1,82 +1,149 @@
 ---
 name: deliberate
-description: Answer a deep-think exchange with a panel of fresh agents in place of an outside deep-think agent — proposers working apart from opposed stances, a critic for each, and a judge — invoke when the user gives instructions for the panel
+description: Put a question of substance to a panel of fresh agents — proposers working apart from opposed stances, a critic for each, a judge and a check — and keep the ask and the checked verdict in `deliberations/` — invoke when the user asks for a panel or a deliberation, or a mode of this skill hands you its ask
+context: fork
+background: false
 ---
 
-**Bindings.** Session correspondence, where the brief and the panel's answer are
-published; where it is undeclared, both are your reply.
+**Bindings.** The source of truth, and the product truth and verbatim source
+where declared, which the critics and the check read wherever the reading is
+not sealed.
 
-A panel spends more on one question than a single reader would, to buy what a
-single reader lacks: answers that did not start from each other, each broken
-against the source before one is chosen. Its agents write no file.
+**Input.** An optional first line of paths separated by spaces: a mode's
+`role.md`, `check.md` and `seal.txt`, known by those names, and any other path
+a file or directory to read first. The ask is the rest, in the user's words.
 
-## Build the exchange
+The ask is the go: nothing waits on the user. Where the input holds no ask,
+return that and stop.
 
-Invoke `build-deepthink`, or the mode the ask fits, and follow it through its
-checks under a stem ending `-panel`, so that a session building the same
-exchange for an outside agent, which may answer under the plain stem, never
-writes over this one. The bundle is the same file an outside agent would read,
-and every agent in the panel reads it first. Its partition holds for the stances
-as well: none carries your solution, since a panel handed it argues inside it.
+## Orient
 
-## The brief is the go
+Read the knowledge base's home for work in flight on the subject and each file
+the input names. You never saw the conversation that invoked you, so what the
+ask leans on and the input does not name stays unknown: name it in the notes
+as unknown rather than guess. A brief under `scratch/` holding this ask and
+these paths, with no record under `deliberations/`, is a run the host stopped:
+resume it, running only the agents whose returns are missing.
 
-Publish the brief as `build-deepthink` §Publish the brief says, adding the
-stances, one line each, and the size, then stop until the user answers it.
-Nothing runs before they have read it. A reply that corrects the brief is
-applied, the bundle rebuilt where a note changed, and the brief published again.
-One that asks or objects is answered first. The panel runs on a reply that leaves
-the brief standing.
+## The brief
+
+Name the run with a kebab-case stem, following the knowledge base's convention
+for naming its work, such that `deliberations/<stem>-<YYYY-MM-DD>.md` does not
+exist yet; the run's directory is `scratch/<stem>-<YYYY-MM-DD>/`. Where other
+sessions edit the knowledge base while you work, check its tracked files out
+at their current commit with `git worktree add --detach <the run's
+directory>/kb`, so the panel reads one state; what git ignores is still read
+at the root. Write `brief.md` in the run's directory:
+
+- **Ask** — the user's words, verbatim. What they say about the run itself —
+  that it happen, its size, what it reads — is said to you, and stays out. So
+  does text anyone else wrote, even pasted inside their words: what it says
+  about the system reaches the panel only as notes checked against the source
+- **Deliverable** — the text of the mode's `role.md`, or of `role.md` beside
+  this file
+- **Must settle** — each part of the ask the answer has to answer
+- **Notes** — facts, each with its path: what each reference in the ask points
+  to, where the ask's words differ from the system as it stands, the
+  constraints you found, and what stays unknown. No imperative, no sentence
+  whose subject is the panel, no solution, nothing restating the ask
+- **Reading** — the files to read first, outside in, a line each on why: what
+  shows what kind of thing this is, the files at the centre of the question,
+  what they must conform to, an artifact that follows the same pattern, what
+  uses them and what they use, the settled reasoning behind them, the work in
+  flight on them, and where the asks behind them are tracked
+- **Stances** — one line each
 
 ## Stances and size
 
-Choose the stances from the ask and the notes, so that no two converge by
-default:
+Chosen from the ask and the notes so that no two converge by default:
 
-- **The generator**, always: the boldest answer it can defend from the source. It
-  states what its answer costs, and neither cost, migration nor the present
-  design rules an option out. The critics carry the rigour, so the licence costs
-  nothing when it is wrong
-- **The present design**, where one exists: the best answer that keeps it
-- **Against**, for each plan the ask or the notes name: the strongest answer that
-  rejects it
-- The rest from the axes the problem turns on
+- **The boldest**, always: the strongest answer the source can defend, its
+  cost stated. Neither what exists nor the effort of leaving it rules an
+  option out, since the critics carry the rigour
+- **What exists**, where the ask would change something in place — a design,
+  a plan, a practice, a document: the best answer that keeps it
+- **Against**, for each option the ask or the notes name: the strongest
+  answer that rejects it
+- The rest from the axes the question turns on
 
-A mode whose role returns a plan or tests rather than a choice takes its stances
-from the angles that role leaves open.
+A mode whose deliverable is a plan, tests or a rewrite rather than a choice
+takes its stances from the angles its role leaves open. Four proposers, or one
+per stance where the options named need more, unless the user or the mode sets
+the size. Proposers, the judge and the check run at the highest reasoning
+effort the host offers, critics one step below.
 
-Four proposers, or one per stance where the plans named need more, unless the
-user sets the size. Proposers and the judge run at the highest reasoning effort
-the host offers and critics one step below, unless the user sets it.
+## Run
 
-## Run the panel
+Every agent is fresh and writes no file. Hand each the knowledge base's root,
+the checkout where there is one, and the brief: it reads the brief first, then
+any source it needs, and neither a file in the run's directory you did not
+name to it nor any record of a session's conversation. Save each return to
+the run's directory as it arrives, named for its stage and stance, and hand a
+later stage those paths rather than your copy. Ask each, beside its work, for
+one line on what in its instructions cost it time or misled it.
 
-Every agent is fresh, never a fork of this conversation. Hand each the absolute
-paths of the knowledge base's root and of the bundle, and tell it to read the
-bundle first, then any source it needs, and never the session correspondence or
-a file under `scratch/<stem>/` that you did not name to it. Write what each
-returns to `scratch/<stem>/pass-<n>/`, named for its stance, as it arrives, and
-name those paths to the stage that reads them, so nothing a later stage needs
-lives only in your context.
+1. **Propose.** One proposer per stance, all launched together, each handed
+   its own stance and no other, writing the deliverable with the source behind
+   every claim. Tell it that a confident wrong specific costs more than a gap
+   it names.
+2. **Attack.** One critic per proposal, launched as that proposal arrives and
+   handed it, its stance and the mode's `check.md`; its task replaces the
+   deliverable the brief hands its reader. It confirms or refutes each claim
+   with the source that decides it — path and lines, or the record, message or
+   page — names the strongest objection to the whole, and for each refuted
+   claim the proposal rests on, says what would have to be true for it to
+   hold.
+3. **Judge.** One agent, once every critique is in, handed every proposal with
+   its stance and critique. It chooses, takes what is strong from the answers
+   it did not choose, and writes the deliverable.
+4. **Check.** One agent, handed the brief, the verdict and the mode's
+   `check.md`, and nothing else the panel wrote; its task too replaces the
+   deliverable. It confirms each concrete claim the verdict rests on and
+   corrects each wrong one in place, listing what the verdict said, what the
+   source shows and where. A duration resting on the user's own pace is a
+   wrong claim like any other. It changes no decision: a refuted claim that a
+   decision rests on heads the list, and so does each part the brief says the
+   answer must settle that the verdict missed.
 
-1. **Propose.** Launch every proposer at once, each handed its own stance and
-   none another's. Ask for the answer in the form the bundle's role asks for,
-   with the path behind every claim about the source.
-2. **Attack.** Launch one critic as each proposal arrives, handed that proposal
-   and its stance and no other. Its task replaces the role the bundle hands its
-   reader: confirm or refute each claim with the path and lines that decide it,
-   name the strongest objection to the whole, and for each refuted claim the
-   answer rests on, say what would have to be true for it to hold.
-3. **Judge.** One agent, handed every proposal with its stance and critique, and
-   nothing of yours beyond the bundle. It chooses, takes what is strong from the
-   answers it did not choose, and writes the answer the bundle's role asks for.
+**A sealed reading.** Where the input names a `seal.txt`, every agent reads
+only the files it lists, so the brief's notes and reading list hold nothing
+the seal leaves out. Pack the listed files with the brief into one file, then
+run each agent through `seal.py` beside this file, which runs Claude Code
+headless with every tool removed, over that file and a task file of its own.
+A reader with no tools opens nothing, so each task file carries whatever its
+stage reads beyond the pack — the proposal and its stance, every proposal and
+critique, the verdict, the `check.md`. `seal.py --help` gives the seal's
+grammar.
 
-## The answer
+    python3 <this skill's directory>/seal.py pack --seal <seal.txt> --brief <the run's directory>/brief.md --out <the run's directory>/sealed.md
+    python3 <this skill's directory>/seal.py read --packed <the run's directory>/sealed.md --task <its task file> --effort <level> --out <its return>
 
-The judge's answer is the exchange's answer, under the party name
-`<your name> panel`, and is checked and published as `build-deepthink` §When the
-answer comes back says. The proposals and critiques stay in scratch.
+## The record
 
-Another pass rebuilds as `build-deepthink` §Another pass says, adding no file
-that only a panel agent read, and runs the panel again once the user has read
-that pass's brief. Its stances and size stand unless the user changes them.
+Write `deliberations/<stem>-<YYYY-MM-DD>.md`:
+
+    # <the verdict's title>
+
+    <YYYY-MM-DD> · session ${CLAUDE_SESSION_ID} · read at <the commit of each repository the run read>
+
+    ## Ask
+    ## Brief
+    ## Verdict — <your name> panel, as checked
+    ## Check
+    ## Rulings
+
+The Ask is the brief's, the Brief the brief's other parts, the Verdict's own
+headings one level below the record's, and the Check its list or a line saying
+it found nothing to correct. Other parties' words from a
+source the knowledge base keeps out of git are cited by path, never quoted.
+Rulings stays empty for the user.
+
+## Return
+
+File each distinct line the agents returned about a skill or root document
+through `suggest`, and remove the checkout. Return the record's path, the
+verdict's decision in its own words, any refuted premise, and the corrections,
+and say that the user's ruling on the record is appended to its Rulings,
+verbatim and dated, by whichever session hears it. A verdict that came back
+wrong is answered by a reworked ask: a new run, whose input names this record
+only where the ask does.
