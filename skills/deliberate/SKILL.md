@@ -41,7 +41,9 @@ at the root. Write `brief.md` in the run's directory:
   about the system reaches the panel only as notes checked against the source
 - **Deliverable** — the text of the mode's `role.md`, or of `role.md` beside
   this file
-- **Must settle** — each part of the ask the answer has to answer
+- **Must settle** — each part of the ask the answer has to answer, never a
+  rule the ask states about the user's own practice: the panel and the check
+  take that as given, and a source disagreeing with it as out of date
 - **Notes** — facts, each with its path: what each reference in the ask points
   to, where the ask's words differ from the system as it stands, the
   constraints you found, and what stays unknown. No imperative, no sentence
@@ -51,7 +53,8 @@ at the root. Write `brief.md` in the run's directory:
   what they must conform to, an artifact that follows the same pattern, what
   uses them and what they use, the settled reasoning behind them, the work in
   flight on them, and where the asks behind them are tracked
-- **Stances** — one line each
+- **Stances** — one line each, naming a position and no fact: a fact a stance
+  leans on is a note with its path
 
 ## Stances and size
 
@@ -74,13 +77,16 @@ effort the host offers, critics one step below.
 
 ## Run
 
-Every agent is fresh and writes no file. Hand each the knowledge base's root,
-the checkout where there is one, and the brief: it reads the brief first, then
+Every agent is fresh and changes nothing: no file, its own scratch included,
+and no git ref, so it fetches, pulls and checks out nothing, and names as a
+gap what it cannot read as the tree stands. Hand each the knowledge base's
+root, the checkout where there is one, and the brief: it reads the brief first, then
 any source it needs, and neither a file in the run's directory you did not
 name to it nor any record of a session's conversation. Save each return to
 the run's directory as it arrives, named for its stage and stance, and hand a
 later stage those paths rather than your copy. Ask each, beside its work, for
-one line on what in its instructions cost it time or misled it.
+one line on what in its instructions cost it time or misled it. Wait for
+every agent you launch: a run with one still out has not ended.
 
 1. **Propose.** One proposer per stance, all launched together, each handed
    its own stance and no other, writing the deliverable with the source behind
