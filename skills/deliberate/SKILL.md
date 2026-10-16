@@ -5,8 +5,8 @@ context: fork
 background: false
 ---
 
-**Bindings.** The source of truth, and the product truth and verbatim source
-where declared, which the critics and the check read wherever the reading is
+**Bindings.** The source of truth and the lifecycles, and the product truth and
+verbatim source where declared, which the critics and the check read wherever the reading is
 not sealed.
 
 **Input.** An optional first line of paths separated by spaces: a mode's
@@ -110,10 +110,10 @@ only the files it lists, so the brief's notes and reading list hold nothing
 the seal leaves out. Pack the listed files with the brief into one file, then
 run each agent through `seal.py` beside this file, which runs Claude Code
 headless with every tool removed, over that file and a task file of its own.
-A reader with no tools opens nothing, so each task file carries whatever its
-stage reads beyond the pack — the proposal and its stance, every proposal and
-critique, the verdict, the `check.md`. `seal.py --help` gives the seal's
-grammar.
+A reader with no tools opens nothing, so each task file carries everything its
+step above gives its agent beyond the brief, in full rather than as paths.
+`seal.py` takes the highest effort as `--effort max` and one step below as
+`xhigh`, and `seal.py --help` gives the seal's grammar.
 
     python3 <this skill's directory>/seal.py pack --seal <seal.txt> --brief <the run's directory>/brief.md --out <the run's directory>/sealed.md
     python3 <this skill's directory>/seal.py read --packed <the run's directory>/sealed.md --task <its task file> --effort <level> --out <its return>
@@ -124,7 +124,7 @@ Write `deliberations/<stem>-<YYYY-MM-DD>.md`:
 
     # <the verdict's title>
 
-    <YYYY-MM-DD> · session ${CLAUDE_SESSION_ID} · read at <the commit of each repository the run read>
+    <YYYY-MM-DD> · session <session-id> · read at <the commit of each repository the run read>
 
     ## Ask
     ## Brief
@@ -132,18 +132,21 @@ Write `deliberations/<stem>-<YYYY-MM-DD>.md`:
     ## Check
     ## Rulings
 
-The Ask is the brief's, the Brief the brief's other parts, the Verdict's own
-headings one level below the record's, and the Check its list or a line saying
-it found nothing to correct. Other parties' words from a
-source the knowledge base keeps out of git are cited by path, never quoted.
-Rulings stays empty for the user.
+`<session-id>` is this session's ID: `${CLAUDE_SESSION_ID}` in Claude Code,
+the conversation ID Antigravity gives the agent, or `unknown` where the harness
+gives none. The Ask is the
+brief's, the Brief the brief's other parts, the Verdict's own headings one
+level below the record's, and the Check its list or a line saying it found
+nothing to correct. Other parties' words from a source the knowledge base keeps
+out of git are cited by path, never quoted. Rulings stays empty for the user.
 
 ## Return
 
 File each distinct line the agents returned about a skill or root document
-through `suggest`, and remove the checkout. Return the record's path, the
-verdict's decision in its own words, any refuted premise, and the corrections,
-and say that the user's ruling on the record is appended to its Rulings,
-verbatim and dated, by whichever session hears it. A verdict that came back
-wrong is answered by a reworked ask: a new run, whose input names this record
-only where the ask does.
+through `suggest`, and where the run created `<the run's directory>/kb`, remove
+it with `git worktree remove <the run's directory>/kb`. Return the record's
+path, the verdict's decision in its own words, any refuted premise, and the
+corrections, and say that the user's ruling on the record is appended to its
+Rulings, verbatim and dated, by whichever session hears it. A verdict that came
+back wrong is answered by a reworked ask: a new run, whose input names this
+record only where the ask does.

@@ -11,7 +11,7 @@ git clone https://github.com/adambones/kb-core.git core
 core/sync
 ```
 
-`core/sync` links each rubric file at the knowledge base's root, where the skills cite it, and each skill into every directory the agents discover skills from — `.claude/skills` for Claude Code, `.agents/skills` for Codex and Gemini CLI — creating both where neither exists. It adds `/core` to `.gitignore`, creates each slot below, with a line of its own there for each the table marks ignored, and names each Always role below that the knowledge base has not bound. `checkin` runs it each time, so what the core gains reaches each knowledge base with no step of its own.
+`core/sync` links each rubric file at the knowledge base's root, where the skills cite it, and each skill into every directory the agents discover skills from — `.claude/skills` for Claude Code, `.agents/skills` for Codex, Gemini CLI and Antigravity — creating both where neither exists. It adds `/core` to `.gitignore`, creates each slot below, with a line of its own there for each the table marks ignored, and names each Always role below that the knowledge base has not bound. `checkin` runs it each time, so what the core gains reaches each knowledge base with no step of its own.
 
 The checkout sits inside the knowledge base so every committed link is relative and resolves on any machine.
 
@@ -25,14 +25,14 @@ The file every session reads — `AGENTS.md`, with `CLAUDE.md` a link to it for 
 
 | Role | Asked for by | Needed |
 |------|--------------|--------|
-| Source of truth | `RUBRIC.md`, `teach-me` | Always |
+| Source of truth | `RUBRIC.md`, `deliberate`, `teach-me` | Always |
 | Homes | `RUBRIC.md` | Always |
-| Lifecycles | `RUBRIC.md` | Always |
+| Lifecycles | `RUBRIC.md`, `deliberate`, `audit-comments` | Always |
 | Slots | `RUBRIC.md` | Always |
 | Audience — who messages reach | `MESSAGING.md`, `distill` | Always |
-| Product truth — what the product is | `distill` | Where the knowledge base has one |
+| Product truth — what the product is | `deliberate`, `distill` | Where the knowledge base has one |
 | Shared repositories — where its writing lands in a repository another audience reads | `checkin`, `audit-comments` | Where the knowledge base has one |
-| Verbatim source — where other parties' own words live | `slack-log` | Where the knowledge base follows Slack |
+| Verbatim source — where other parties' own words live | `deliberate`, `slack-log` | Where the knowledge base has one |
 | Followed channels — each Slack channel it mirrors, with its ID and any backfill floor | `slack-log` | Where the knowledge base follows Slack |
 
 ## Slots

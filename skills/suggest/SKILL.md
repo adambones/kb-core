@@ -13,8 +13,11 @@ description: Queue one line of feedback on a skill or root document without chan
    session having seen more.
 3. **Append one line**, for a reader who never had this session:
 
-       - <YYYY-MM-DD> · ${CLAUDE_SESSION_ID} · <step or sentence> — <what happened> → <what would have served>
+       - <YYYY-MM-DD> · <session-id> · <step or sentence> — <what happened> → <what would have served>
 
-   What happened is what the session saw, never a cause it did not test.
+   `<session-id>` is this session's ID: `${CLAUDE_SESSION_ID}` in Claude Code,
+   the conversation ID Antigravity gives the agent, or `unknown` where the
+   harness gives none. What happened is what the session saw, never a cause it
+   did not test.
 4. **Return to the work.** The target changes later, through whatever writes
    it, which reads this file first. The commit is the recording step's.

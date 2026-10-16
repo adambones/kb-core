@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pull the core, link its rubric and skills into the knowledge base that holds it, and create the slots its README names, ignoring each it marks ignored.
+"""Pull the core, link its rubric and skills into the knowledge base that holds it, create the slots its README names (ignoring each it marks ignored), and flag each required role the Bindings section does not name.
 
 Run as `core/sync`; `--no-pull` skips the fetch. Prints one line per change and one
 `attention:` line per thing a person must resolve. The only link it removes is one
