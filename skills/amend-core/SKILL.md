@@ -7,9 +7,9 @@ description: Change the rules or skills every knowledge base shares — invoke b
    read. It governs the change as it governs any document, and its §3 governs
    changing a rule. A script is code as well: read `IMPLEMENTATION.md` §§1–2
    before editing one, and invoke `audit-comments` over it before step 6. Then
-   read `suggestions/<name>.md` for each skill or root document the change
-   touches, delete each line the change settles, and put each it leaves to the
-   user, deleting those they decline; git keeps both.
+   read the suggestions file `suggest` names for each skill or root document the
+   change touches, delete each line the change settles, and put each it leaves
+   to the user, deleting those they decline; git keeps both.
 
 2. **Edit the target, not the link.** Edit the file under `core/`, never a link to
    it from the knowledge base: a tool that writes by replacing a file turns a link

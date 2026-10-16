@@ -6,9 +6,9 @@ description: Queue one line of feedback on a skill or root document without chan
 1. **Name the target**: the skill, or the document at the root of the
    knowledge base or of the core, whose text would change, and the step or
    sentence in it.
-2. **Read `suggestions/<target>.md`**, the target being the skill's name, the
-   name of a document at the knowledge base's root without `.md`, or `core-`
-   and that name for one at the core's root. A line already saying the same
+2. **Read `suggestions/<target>.md` where it exists**, the target being the
+   skill's name, `core-README` for `core/README.md`, or the document's name
+   without `.md` for any other root document. A line already saying the same
    takes no second, and a line this one contradicts is replaced, the later
    session having seen more.
 3. **Append one line**, for a reader who never had this session:

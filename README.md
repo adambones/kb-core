@@ -54,7 +54,7 @@ The core leaves each knowledge base its orchestrators, the skills that sequence 
 | Skill | Does | Needed |
 |-------|------|--------|
 | A writer of documents | Reads `RUBRIC.md` | Always |
-| A writer of skills or root documents | Reads `suggestions/<name>.md` for each file it changes, deletes each line the change settles, puts each it leaves to the user, and invokes `cold-read` after the change | Always |
+| A writer of skills or root documents | Reads the suggestions file `suggest` names for each file it changes, deletes each line the change settles, puts each it leaves to the user, and invokes `cold-read` after the change | Always |
 | A recording step | Invokes `checkin` | Always |
 | A writer of code | Reads `IMPLEMENTATION.md` §§1–2 before the first edit, then invokes `audit-comments` | Where the knowledge base writes code |
 | A reviewer of code | Reads `IMPLEMENTATION.md` §3 | Where the knowledge base reviews code |
