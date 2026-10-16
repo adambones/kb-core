@@ -13,6 +13,9 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
 
+# A tool shell's PATH may miss claude, so the running Claude Code's own binary comes first while it still exists
+OWN = os.environ.get("CLAUDE_CODE_EXECPATH")
+CLAUDE = OWN if OWN and os.path.isfile(OWN) else "claude"
 PREFIX = "mcp__claude_ai_Slack__"
 READ_CHANNEL = PREFIX + "slack_read_channel"
 READ_THREAD = PREFIX + "slack_read_thread"
@@ -36,7 +39,7 @@ ARCHIVED = "archived the channel"
 # Each read comes back as (tool, input, payload) in the order the run placed it, which the cursor chain relies on
 def fetch(prompt, attempt=1):
     # Default mode, so a permissive mode in user settings cannot widen the allowlist; the model only places calls, so the cheapest serves
-    cmd = ["claude", "-p", LOAD + prompt, "--output-format", "stream-json", "--verbose",
+    cmd = [CLAUDE, "-p", LOAD + prompt, "--output-format", "stream-json", "--verbose",
            "--permission-mode", "default", "--model", "haiku", "--max-turns", "60",
            "--allowedTools", " ".join([READ_CHANNEL, READ_THREAD, "ToolSearch"]),
            "--disallowedTools", " ".join(DENIED)]
@@ -230,6 +233,10 @@ def find_store(out, cid):
     return None
 
 
+def taken(held, cid):
+    return held.exists() and json.loads(held.read_text()).get("channel_id") != cid
+
+
 def save(path, data):
     tmp = path.with_suffix(".tmp")
     tmp.write_text(json.dumps(data, indent=1, ensure_ascii=False))
@@ -238,6 +245,9 @@ def save(path, data):
 
 def sync(cid, out, lookback, since, label):
     path = find_store(out, cid)
+    # A first sync under a label already taken would read a whole backfill only to refuse it
+    if not path and label and taken(out / label / "store.json", cid):
+        sys.exit(f"slack-log: {out / label} holds another conversation's log, so {cid} needs another --name")
     store = json.loads(path.read_text()) if path else {"channel_id": cid, "messages": {}}
     stored = store["messages"]
     if archived(tree(stored)[0]):
@@ -268,6 +278,10 @@ def sync(cid, out, lookback, since, label):
     store["title"] = f"#{name}" if name else store.get("title") or store["name"]
     store["synced"] = datetime.now().isoformat(timespec="seconds")
     directory = out / store["name"]
+    held = directory / "store.json"
+    # Before any rename, since a second conversation under one name would overwrite the record that keeps what Slack deleted
+    if held != path and taken(held, cid):
+        sys.exit(f"slack-log: {directory} holds another conversation's log; rename that directory, which its store's channel ID still finds")
     # A renamed channel takes its directory along, so keep.txt still finds its store
     if path and path.parent != directory:
         path.parent.rename(directory)

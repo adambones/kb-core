@@ -5,7 +5,7 @@ description: Mirror Slack channels, live or archived, into thread-nested markdow
 
 **Bindings.** The verbatim source and the followed channels. Where either is undeclared, stop.
 
-`python3 <this skill's directory>/slack_log.py` fetches, stores and draws the log. Its fetch runs `claude -p` against the claude.ai Slack connector, denied the connector's writes and every shell and file-editing tool. A machine needs `claude` and Python 3.9 or later on its PATH, logged in to an account where that connector is authorised, and reads what that Slack user can read.
+`python3 <this skill's directory>/slack_log.py` fetches, stores and draws the log. Its fetch runs `claude -p` against the claude.ai Slack connector, denied the connector's writes and every shell and file-editing tool. A machine needs Python 3.9 or later and `claude`, found as the Claude Code session running the sync or on its PATH, logged in to an account where that connector is authorised, and reads what that Slack user can read.
 
 ## The log
 
@@ -17,7 +17,7 @@ Find the channel's ID with the connector's channel search, archived channels inc
 
 ## Refresh
 
-`slack_log.py sync --out <verbatim source>/slack [--since <floor>] [--name <name>] <ID>...` re-reads the top level over a sixty-day window and only the threads whose reply count or latest reply moved, so a reply under a parent older than the window is missed. `--name` names the directory for a single conversation that Slack leaves unnamed. Once a channel's log ends in its archive notice, sync skips it. A failed read exits non-zero and leaves that channel's log as it was. The knowledge base runs it on a schedule, and by hand before relying on a log that `recent` flags as stale.
+`slack_log.py sync --out <verbatim source>/slack [--since <floor>] [--name <name>] <ID>...` re-reads the top level over a sixty-day window and only the threads whose reply count or latest reply moved, so a reply under a parent older than the window is missed. `--name` names the directory for a single conversation that Slack leaves unnamed. A sync whose directory another conversation's log already holds stops before it writes, leaving every log as it was: give an unnamed conversation another `--name`, or rename the other directory, which its store's channel ID still finds. Once a channel's log ends in its archive notice, sync skips it. A failed read exits non-zero and leaves that channel's log as it was. The knowledge base runs it on a schedule, and by hand before relying on a log that `recent` flags as stale.
 
 ## Read
 
