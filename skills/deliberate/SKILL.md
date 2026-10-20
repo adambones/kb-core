@@ -100,16 +100,22 @@ every agent you launch: a run with one still out has not ended.
    claim the proposal rests on, says what would have to be true for it to
    hold.
 3. **Judge.** One agent, once every critique is in, handed every proposal with
-   its stance and critique. It chooses, takes what is strong from the answers
-   it did not choose, and writes the deliverable.
+   its stance and critique. It writes the deliverable as one answer in its own
+   voice, taking what holds from every proposal, and, unless its role says
+   what it opens with, opens with what it decided in one to five sentences.
+   The alternatives it names are the design's, never the panel's, and it
+   cites nothing under the run's directory and no record of a conversation,
+   stating what the brief took from one as a fact.
 4. **Check.** One agent, handed the brief, the verdict and the mode's
    `check.md`, and nothing else the panel wrote; its task too replaces the
    deliverable. It confirms each concrete claim the verdict rests on and
-   corrects each wrong one in place, listing what the verdict said, what the
-   source shows and where. A duration resting on the user's own pace is a
-   wrong claim like any other. It changes no decision: a refuted claim that a
-   decision rests on heads the list, and so does each part the brief says the
-   answer must settle that the verdict missed.
+   corrects each wrong one in place, returning the corrected verdict and,
+   apart from it, what the verdict said, what the source shows and where. A
+   duration resting on the user's own pace is a wrong claim like any other.
+   It changes no decision: a refuted claim that a decision rests on, and each
+   part the brief says the answer must settle that the verdict missed, it
+   writes at the head of the verdict's opening, as what the user must know
+   first.
 
 **A sealed reading.** Where the input names a `seal.txt`, every agent reads
 only the files it lists, so the brief's notes and reading list hold nothing
@@ -130,29 +136,28 @@ Write `deliberations/<stem>-<YYYY-MM-DD>.md`:
 
     # <the verdict's title>
 
-    <YYYY-MM-DD> · session <session-id> · read at <the commit of each repository the run read>
+    <YYYY-MM-DD> · <model> · session <session-id> · read at <the commit of each repository the run read>
 
     ## Ask
-    ## Brief
     ## Verdict — <your name> panel, as checked
-    ## Check
     ## Rulings
 
-`<session-id>` is this session's ID: `${CLAUDE_SESSION_ID}` in Claude Code,
-the conversation ID Antigravity gives the agent, or `unknown` where the harness
-gives none. The Ask is the
-brief's, the Brief the brief's other parts, the Verdict's own headings one
-level below the record's, and the Check its list or a line saying it found
-nothing to correct. Other parties' words from a source the knowledge base keeps
-out of git are cited by path, never quoted. Rulings stays empty for the user.
+`<model>` is the model the judge ran on, as the host names it, with the
+effort it was launched at beside it where the host takes one. `<session-id>` is this
+session's ID: `${CLAUDE_SESSION_ID}` in Claude Code, the conversation ID
+Antigravity gives the agent, or `unknown` where the harness gives none. The
+Ask is the brief's, and the Verdict is the check's corrected verdict with its
+own headings one level below the record's. The brief and every agent's return
+stay in the run's directory. Other parties' words from a source the knowledge
+base keeps out of git are cited by path, never quoted. Rulings stays empty for
+the user.
 
 ## Return
 
 File each distinct line the agents returned about a skill or root document
 through `suggest`, and where the run created `<the run's directory>/kb`, remove
 it with `git worktree remove <the run's directory>/kb`. Return the record's
-path, the verdict's decision in its own words, any refuted premise, and the
-corrections, and say that the user's ruling on the record is appended to its
-Rulings, verbatim and dated, by whichever session hears it. A verdict that came
+path and the verdict's opening, and say that the user's ruling on the record
+is appended to its Rulings, verbatim and dated, by whichever session hears it. A verdict that came
 back wrong is answered by a reworked ask: a new run, whose input names this
 record only where the ask does.

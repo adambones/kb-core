@@ -27,11 +27,11 @@ The file every session reads — `AGENTS.md`, with `CLAUDE.md` a link to it for 
 |------|--------------|--------|
 | Source of truth | `RUBRIC.md`, `deliberate`, `teach-me` | Always |
 | Homes | `RUBRIC.md` | Always |
-| Lifecycles | `RUBRIC.md`, `deliberate`, `audit-comments` | Always |
+| Lifecycles | `RUBRIC.md`, `deliberate`, `audit-comments`, `improve-docs` | Always |
 | Slots | `RUBRIC.md` | Always |
 | Audience — who messages reach | `MESSAGING.md`, `distill` | Always |
 | Product truth — what the product is | `deliberate`, `distill` | Where the knowledge base has one |
-| Shared repositories — where its writing lands in a repository another audience reads | `checkin`, `audit-comments` | Where the knowledge base has one |
+| Shared repositories — where its writing lands in a repository another audience reads | `checkin`, `audit-comments`, `improve-docs` | Where the knowledge base has one |
 | Verbatim source — where other parties' own words live | `deliberate`, `slack-log` | Where the knowledge base has one |
 | Followed channels — each Slack channel it mirrors, with its ID and any backfill floor | `slack-log` | Where the knowledge base follows Slack |
 
