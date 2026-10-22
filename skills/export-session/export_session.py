@@ -7,6 +7,8 @@ import re
 import sys
 
 SELF_COMMAND = "/export-session"
+# Keyed by harness, each named for the assistant its transcripts default to
+RESUME = {"Claude": "claude --resume", "Gemini": "agy --conversation"}
 # The harness fences a paste in tags of its own, which are not the user's words
 PASTE_FENCE = re.compile(r"</?pasted_content[^>]*>")
 
@@ -24,21 +26,31 @@ def records(path):
 def find_transcript(session):
     if os.path.isfile(session):
         # Antigravity records carry step_index at the top level, where Claude Code's carry none
-        return session, "Gemini" if "step_index" in next(records(session), {}) else "Claude"
+        harness = "Gemini" if "step_index" in next(records(session), {}) else "Claude"
+        return session, harness, session_of(session, harness)
     # A Claude Code session files under the directory it started in, which the id does not name
     claude_root = os.environ.get("CLAUDE_CONFIG_DIR", os.path.expanduser("~/.claude"))
     # Escaped, so an id holding a wildcard cannot export another session's transcript
     matches = glob.glob(os.path.join(claude_root, "projects", "*", f"{glob.escape(session)}.jsonl"))
     if matches:
-        return matches[0], "Claude"
+        return matches[0], "Claude", session
     # Antigravity files under Gemini's home, in a directory per client
     gemini_root = os.path.expanduser("~/.gemini")
     # The full log holds every line the other truncates
     for name in ("transcript_full.jsonl", "transcript.jsonl"):
         matches = glob.glob(os.path.join(gemini_root, "*", "brain", glob.escape(session), ".system_generated", "logs", name))
         if matches:
-            return matches[0], "Gemini"
+            return matches[0], "Gemini", session
     sys.exit(f"export-session: no transcript for session {session} under {claude_root}/projects or {gemini_root}/*/brain")
+
+
+# A moved transcript keeps no id, since a wrong one would reopen another session
+def session_of(path, harness):
+    if harness == "Claude":
+        return next((r["sessionId"] for r in records(path) if "sessionId" in r), None)
+    # Antigravity records carry none, so only the conversation folder above .system_generated names it
+    parts = os.path.abspath(path).split(os.sep)
+    return parts[-4] if parts[-3:-1] == [".system_generated", "logs"] else None
 
 
 def origin_kind(holder):
@@ -179,14 +191,16 @@ def quote(text):
     return "\n".join(f"> {line}" if line.strip() else ">" for line in text.splitlines())
 
 
-def render(title, turns):
+def render(title, session, harness, turns):
     merged = []
     for speaker, text in turns:
         if merged and merged[-1][0] == speaker:
             merged[-1][1].append(text)
         else:
             merged.append((speaker, [text]))
-    lines = [f"# {title}"]
+    # The id leads the file, so a search for it finds the export and the command beside it reopens the session
+    lines = [f"Session: {session} · `{RESUME[harness]} {session}`", ""] if session else []
+    lines.append(f"# {title}")
     # Quoted whole, so a heading or rule a speaker wrote cannot open a section of the page the export is pasted into
     for speaker, texts in merged:
         lines += ["", f"**{speaker}:**", "", quote("\n\n".join(texts))]
@@ -202,8 +216,8 @@ def main():
     parser.add_argument("--assistant")
     parser.add_argument("--party", action="append", default=[])
     args = parser.parse_args()
-    path, default_assistant = find_transcript(args.session)
-    assistant = args.assistant or default_assistant
+    path, harness, session = find_transcript(args.session)
+    assistant = args.assistant or harness
     names = [args.user, assistant, *args.party]
     if len(set(names)) < len(names):
         parser.error(f"--user, each --party and {assistant} need distinct names, since blocks under one name merge")
@@ -211,7 +225,7 @@ def main():
     turns = read_session(path, args.user, assistant, set(args.party))
     os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
     with open(args.out, "w", encoding="utf-8") as f:
-        f.write(render(args.title, turns))
+        f.write(render(args.title, session, harness, turns))
     print(args.out)
 
 

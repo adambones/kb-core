@@ -1,9 +1,11 @@
 ---
 name: export-session
-description: Write this session out as a labeled Markdown transcript — the user's messages and everything the assistant said, none of its tool calls — for the user to hand another party
+description: Write this session out as a labeled Markdown transcript — the user's messages and everything the assistant said, none of its tool calls — for the user to hand another party, headed by the command that reopens the session
 ---
 
-Run one command, and read neither the transcript nor the file it writes.
+Run one command, and read neither the transcript nor the file it writes. In
+Antigravity run it with `BypassSandbox`, since inside the terminal sandbox it
+can neither find the transcript nor write the file.
 
     python3 <this skill's directory>/export_session.py <session> --title <title> --out <path> [--user <name>] [--assistant <name>] [--party <name>]...
 
