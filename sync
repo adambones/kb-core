@@ -69,7 +69,7 @@ def pull():
         attention("core/ has uncommitted changes, so it was not pulled")
         return True
     before = git("rev-parse", "HEAD").stdout.strip()
-    # Fast-forward only: a merge belongs to checkin's pull, where a conflict stops for a person
+    # A merge belongs to checkin's pull, which can stop for a person
     merged = git("merge", "--ff-only", "-q", "@{u}")
     if merged.returncode != 0:
         attention("core/ was not pulled: " + reason(merged))
