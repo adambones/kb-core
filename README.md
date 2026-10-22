@@ -17,6 +17,8 @@ The checkout sits inside the knowledge base so every committed link is relative 
 
 Turn agent memory off in each agent's settings (No Memories). In Claude Code that is `"autoMemoryEnabled": false` in `.claude/settings.json`.
 
+Run each agent in its auto mode, which proceeds on routine work and asks only before an irreversible action, since the skills run unattended. In Claude Code that is `"defaultMode": "auto"` under `permissions` in `.claude/settings.json`. In Antigravity it is Agent Mode `auto` in `/config`, one setting for every workspace on the machine.
+
 Start the knowledge base's documents from the core alone. Seeding it with another knowledge base's documents imports that one's traits into a new domain.
 
 ## Bind
