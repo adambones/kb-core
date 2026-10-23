@@ -9,10 +9,16 @@ import sys
 import tempfile
 import threading
 import time
+import urllib.error
+import urllib.parse
+import urllib.request
 from collections import defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
+# With a user token every read is a free Web API call; without one each goes through a paid headless Claude run
+TOKEN = os.environ.get("SLACK_USER_TOKEN")
 # A tool shell's PATH may miss claude, so the running Claude Code's own binary comes first while it still exists
 OWN = os.environ.get("CLAUDE_CODE_EXECPATH")
 CLAUDE = OWN if OWN and os.path.isfile(OWN) else "claude"
@@ -160,6 +166,14 @@ def parse_thread(text):
     return records[0], records[1:], int(total.group(1)) if total else 0
 
 
+def connector_top(cid, oldest):
+    name, top = None, []
+    for page in read_top(cid, oldest):
+        page_name, records = parse_channel(page["messages"])
+        name, top = name or page_name, top + records
+    return name, top
+
+
 # Every channel page since oldest, split across runs so a large channel never fills one context
 def read_top(cid, oldest):
     pages, cursor = [], None
@@ -226,6 +240,155 @@ def read_threads(cid, due):
     return threads
 
 
+class Api:
+    """Slack's Web API under a user token, each message drawn as the connector draws it so one store can mix both"""
+
+    def __init__(self, token):
+        self.token = token
+        self.people, self.channels = {}, {}
+        # The connector writes times in the reading user's Slack timezone, whichever machine syncs
+        self.me = self.call("auth.test")["user_id"]
+        self.zone = ZoneInfo(self.person(self.me).get("tz") or "UTC")
+
+    def call(self, method, missing_ok=False, **params):
+        request = urllib.request.Request(f"https://slack.com/api/{method}?{urllib.parse.urlencode(params)}",
+                                         headers={"Authorization": f"Bearer {self.token}"})
+        for attempt in range(1, 6):
+            try:
+                with urllib.request.urlopen(request, timeout=60) as response:
+                    body = json.load(response)
+                break
+            except urllib.error.HTTPError as error:
+                if error.code != 429 and error.code < 500:
+                    sys.exit(f"slack-log: {method} answered HTTP {error.code}")
+                time.sleep(int(error.headers.get("Retry-After", 10 * attempt)))
+            except (urllib.error.URLError, TimeoutError) as error:
+                print(f"slack-log: retrying {method}, {error}", file=sys.stderr)
+                time.sleep(10 * attempt)
+        else:
+            sys.exit(f"slack-log: {method} never answered")
+        if body.get("ok"):
+            return body
+        if missing_ok:
+            return None
+        sys.exit(f"slack-log: {method} failed: {body.get('error')}")
+
+    def pages(self, method, key, **params):
+        cursor = None
+        while True:
+            body = self.call(method, **params, **({"cursor": cursor} if cursor else {}))
+            yield from body[key]
+            cursor = (body.get("response_metadata") or {}).get("next_cursor")
+            if not cursor:
+                return
+
+    def person(self, uid):
+        # One listing names the whole workspace, so only someone from outside it costs a call of their own
+        if not self.people:
+            self.people = {u["id"]: u for u in self.pages("users.list", "members", limit=200)}
+        if uid not in self.people:
+            self.people[uid] = (self.call("users.info", missing_ok=True, user=uid) or {}).get("user") or {}
+        return self.people[uid]
+
+    def name(self, uid):
+        person = self.person(uid)
+        profile = person.get("profile") or {}
+        # The name Slack shows on a message, as the connector draws it
+        return profile.get("display_name") or profile.get("real_name") or person.get("name") or uid
+
+    def channel(self, cid):
+        # A private channel the reader is not in answers channel_not_found and keeps its ID
+        if cid not in self.channels:
+            self.channels[cid] = ((self.call("conversations.info", missing_ok=True, channel=cid) or {}).get("channel")
+                                  or {}).get("name") or cid
+        return self.channels[cid]
+
+    @staticmethod
+    def body(m):
+        blocks = m.get("blocks", [])
+        # A person's text is the whole message; an app's text only summarises its blocks for a notification
+        if m.get("text") and all(b["type"] == "rich_text" for b in blocks):
+            return m["text"]
+        lines = []
+        for b in blocks:
+            if b["type"] in ("header", "section") and b.get("text"):
+                lines.append(b["text"]["text"])
+            lines += [f["text"] for f in b.get("fields", [])]
+            if b["type"] == "context":
+                lines.append(" ".join(e["text"] for e in b.get("elements", []) if e.get("text")))
+            if b["type"] == "rich_text":
+                lines.append(Api.rich(b))
+        return "\n".join(x for x in lines if x) or m.get("text", "")
+
+    @staticmethod
+    def rich(node):
+        """Rich text back into the markup a message's text carries, for record() to name and unescape alike"""
+        if isinstance(node, list):
+            return "".join(map(Api.rich, node))
+        kind = node.get("type")
+        if kind == "text":
+            return node["text"]
+        if kind == "link":
+            return f"<{node['url']}|{node['text']}>" if node.get("text") else f"<{node['url']}>"
+        if kind == "user":
+            return f"<@{node['user_id']}>"
+        if kind == "channel":
+            return f"<#{node['channel_id']}>"
+        if kind == "emoji":
+            return f":{node['name']}:"
+        if kind == "broadcast":
+            return f"<!{node['range']}>"
+        inner = Api.rich(node.get("elements", []))
+        return inner + "\n" if kind in ("rich_text_section", "rich_text_quote", "rich_text_preformatted") else inner
+
+    def attachment(self, a):
+        if (a.get("is_share") or a.get("is_msg_unfurl")) and a.get("from_url"):
+            # A forwarded file has no text, only Slack's dated one-line summary
+            quote = f": {a.get('text') or a.get('fallback')}" if a.get("text") or a.get("fallback") else ""
+            author = a.get("author_name") or a.get("author_subname") or self.name(a.get("author_id") or "unknown")
+            return f"Forwarded message from {author} ({a['from_url']}){quote}"
+        # A link preview is Slack's rendering of a page, not anyone's words
+        if a.get("from_url") or a.get("original_url"):
+            return ""
+        title = f"{a['title']} ({a['title_link']})" if a.get("title") and a.get("title_link") else a.get("title")
+        fields = ", ".join(f"{f.get('title')}: {f.get('value')}" for f in a.get("fields") or [])
+        parts = [x for x in (a.get("pretext"), title, a.get("text"), fields) if x]
+        return "Attachment: " + "\n".join(parts) if parts else ""
+
+    def when(self, ts):
+        return datetime.fromtimestamp(float(ts), self.zone).strftime("%Y-%m-%d %H:%M:%S")
+
+    def record(self, m):
+        uid = m.get("user") or m.get("bot_id")
+        name = self.name(m["user"]) if m.get("user") else (m.get("bot_profile") or {}).get("name") or m.get("username") or uid
+        text = "\n".join(x for x in [self.body(m), *map(self.attachment, m.get("attachments", []))] if x)
+        # The connector names every mention, the form markup() renders and tree() reads to drop join notices
+        text = re.sub(r"<@([UW][A-Z0-9]+)>", lambda u: f"<@{u.group(1)}|{self.name(u.group(1))}>", text)
+        text = re.sub(r"<#([CG][A-Z0-9]+)>", lambda c: f"<#{c.group(1)}|{self.channel(c.group(1))}>", text)
+        # The connector stores a person's words unescaped, so one store holds one form whichever reader wrote it
+        text = text.replace("&lt;", "<").replace("&gt;", ">").replace("&amp;", "&")
+        record = {"ts": m["ts"], "name": name, "uid": uid, "time": self.when(m["ts"]), "text": text.strip(),
+                  "reactions": {r["name"]: r["count"] for r in m.get("reactions", [])},
+                  # A deleted file keeps only its ID
+                  "files": [f.get("name") or f["id"] for f in m.get("files", [])]}
+        if m.get("reply_count"):
+            record["replies"], record["latest"] = m["reply_count"], self.when(m["latest_reply"])
+        return record
+
+    def top(self, cid, oldest):
+        channel = self.call("conversations.info", channel=cid)["channel"]
+        # A DM has no name and Slack names a group DM after its members, either of which would move its log out of the directory it was followed under
+        name = None if channel.get("is_im") or channel.get("is_mpim") else channel["name"]
+        return name, [self.record(m) for m in
+                      self.pages("conversations.history", "messages", channel=cid, oldest=oldest, limit=1000)]
+
+    def threads(self, cid, due):
+        # The parent comes back among its replies
+        return {ts: [self.record(m) for m in
+                     self.pages("conversations.replies", "messages", channel=cid, ts=ts, limit=1000) if m["ts"] != ts]
+                for ts in due}
+
+
 def find_store(out, cid):
     for path in out.glob("*/store.json"):
         if json.loads(path.read_text()).get("channel_id") == cid:
@@ -243,7 +406,7 @@ def save(path, data):
     os.replace(tmp, path)
 
 
-def sync(cid, out, lookback, since, label):
+def sync(cid, out, lookback, since, label, api):
     path = find_store(out, cid)
     # A first sync under a label already taken would read a whole backfill only to refuse it
     if not path and label and taken(out / label / "store.json", cid):
@@ -251,20 +414,17 @@ def sync(cid, out, lookback, since, label):
     store = json.loads(path.read_text()) if path else {"channel_id": cid, "messages": {}}
     stored = store["messages"]
     if archived(tree(stored)[0]):
-        print(f"#{store['name']}: archived, nothing to read")
         return
     # Replies surface only through their parent, so later syncs re-read a window of parents and a thread whose parent predates it stops updating
     # The connector hangs on oldest 0, so a backfill from the start asks from the first second instead
     floor = datetime.strptime(since, "%Y-%m-%d").timestamp() if since else 1
     oldest = f"{time.time() - lookback * 86400:.6f}" if stored else f"{floor:.6f}"
-    name, top = None, []
-    for page in read_top(cid, oldest):
-        page_name, records = parse_channel(page["messages"])
-        name, top = name or page_name, top + records
+    name, top = api.top(cid, oldest) if api else connector_top(cid, oldest)
 
     due = [m["ts"] for m in top if m.get("replies") and (
         stored.get(m["ts"], {}).get("replies"), stored.get(m["ts"], {}).get("latest")) != (m["replies"], m["latest"])]
-    threads = read_threads(cid, due) if due else {}
+    threads = (api.threads if api else read_threads)(cid, due) if due else {}
+    before = len(stored)
     # The store only adds: a deleted message stays, and an edit lands only while its parent is in the window
     for m in top:
         # On a reply this marks one also sent to the channel
@@ -288,7 +448,9 @@ def sync(cid, out, lookback, since, label):
     directory.mkdir(parents=True, exist_ok=True)
     save(directory / "store.json", store)
     render(directory)
-    print(f"#{store['name']}: {len(top)} top-level read, {len(due)} threads read, {len(stored)} held")
+    # Most runs find a conversation quiet, so only one that moved prints a line
+    if len(stored) > before or due:
+        print(f"#{store['name']}: {len(stored) - before} new, {len(due)} threads read, {len(stored)} held")
 
 
 # Slack's wire markup to markdown, leaving every author's word as written
@@ -302,7 +464,9 @@ def markup(text):
     text = re.sub(r"<(https?://[^>]+)>", r"\1", text)
     text = re.sub(r"::skin-tone-\d:", ":", text)
     # The connector's note on a forward tells its own caller how to fetch the original, which a reader cannot use
-    text = re.sub(r"Forwarded message from ([^(\n]+) \((https?://[^)]+)\)[^\n]*", r"[forwarded from \1](\2)", text)
+    text = re.sub(r" — use slack_read_[^\n]*", "", text)
+    # A forward with words quotes them after a colon; one without ends at its link
+    text = re.sub(r"Forwarded message from ([^(\n]+) \((https?://[^)]+)\):? ?", r"[forwarded from \1](\2) ", text)
     text = text.replace("&lt;", "<").replace("&gt;", ">").replace("&amp;", "&")
     return [line.rstrip() for line in text.split("\n") if line.strip()]
 
@@ -351,7 +515,7 @@ def render(directory):
                 day = m["time"][:10]
                 out += ["", f"## {datetime.strptime(day, '%Y-%m-%d'):%a %d %b}", ""]
             out += entry(m, 0) + [x for r in replies.get(m["ts"], []) for x in entry(r, 1, day)]
-        (directory / f"{month}.md").write_text("\n".join(out) + "\n")
+        write(directory / f"{month}.md", "\n".join(out) + "\n")
     # Written by whoever curates, one `<parent ts> [# heading]` per line
     keep = directory / "keep.txt"
     if keep.exists():
@@ -362,7 +526,13 @@ def render(directory):
             if m:
                 out += ["", f"## {note.strip() or m['time'][:10]}", ""]
                 out += entry(m, 0, "") + [x for r in replies.get(m["ts"], []) for x in entry(r, 1, m["time"][:10])]
-        (directory / "curated.md").write_text("\n".join(out) + "\n")
+        write(directory / "curated.md", "\n".join(out) + "\n")
+
+
+# An unchanged file keeps its timestamp, so copying to another machine finds nothing new to move
+def write(path, text):
+    if not path.exists() or path.read_text() != text:
+        path.write_text(text)
 
 
 def archived(tops):
@@ -424,8 +594,9 @@ def main():
                 sys.exit("slack-log: another sync holds the lock")
             if args.name and len(args.channels) != 1:
                 parser.error("--name labels exactly one conversation")
+            api = Api(TOKEN) if TOKEN else None
             for cid in args.channels:
-                sync(cid, args.out, args.lookback, args.since, args.name)
+                sync(cid, args.out, args.lookback, args.since, args.name, api)
     elif args.command == "recent":
         for directory in channels(args.out, args.channels):
             recent(directory, args.days)

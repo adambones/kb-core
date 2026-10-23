@@ -49,8 +49,14 @@ diff, not from session memory.
    the core's push is stopped: `git pull --no-rebase`, then `git push`. Merge, not rebase — pass `--no-rebase` explicitly, because a
    machine's `pull.rebase` default is often `true` and rebasing over another
    machine's pushed commits jams per-commit where a merge resolves in one pass.
-   Never `--force`. A merge conflict stops for attended resolution. A rejected
-   push stops for the user — never reset or re-parent.
+   Never `--force`. A conflict in a file its writer only appends to, where both
+   sides added lines at the same place and removed none, resolves by keeping
+   both; `git checkout --conflict=diff3 <path>` shows the base each side started
+   from. The merge then concludes with `git commit --no-edit`, the one commit
+   without a pathspec, since git refuses a partial commit mid-merge. Any other
+   conflict stops for attended resolution, backed out with `git merge --abort`
+   so the shared index keeps taking other sessions' commits meanwhile. A
+   rejected push stops for the user — never reset or re-parent.
 
 6. **Report** what was committed, where, and whether each push landed. A
    `core/` commit gets its own line, since every knowledge base inherits it.

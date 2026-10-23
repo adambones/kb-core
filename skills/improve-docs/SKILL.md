@@ -18,11 +18,12 @@ step those paths.
 ## 1. Decompose
 
 One agent per document, all launched together, each handed its document
-alone. It returns every point the document makes, one per line in the
-document's own words with the lines it came from: the claim or contract, the
-reason or failure mode behind it, and each symbol, path and link it carries. A
-paragraph or bullet holding several points returns several lines, each naming
-the subject it describes.
+alone. It returns every point the document makes, one per line with the lines
+it came from, each stated as the plain claim it makes, every condition and
+qualifier kept, rather than in the document's sentence: the claim or contract,
+the reason or failure mode behind it, and each name, symbol, path, number and
+link it carries, those exactly as written. A paragraph or bullet holding
+several points returns several lines, each naming the subject it describes.
 
 ## 2. Blueprint
 
@@ -50,8 +51,8 @@ One agent, handed the blueprint and the input documents. It confirms that
 every point in the input documents, read from the documents themselves and
 never from step 1's returns, is routed to a section, and that each point the
 blueprint merged says the same thing as the point it merged into. A miss it
-fixes in the blueprint before any writer launches, and its return is what it
-fixed.
+fixes in the blueprint, stated as step 1 states a point, before any writer
+launches, and its return is what it fixed.
 
 ## 4. Write
 
@@ -59,8 +60,8 @@ One agent per document in the blueprint, all launched together, each handed
 that document's part of the blueprint, `RUBRIC.md`, the rubrics and
 references the input names, and nothing else of the set. It writes the
 document whole, over the path the blueprint names: a document a person or an
-agent reads once and can act on, carrying every claim, reason, symbol and link
-in its points.
+agent reads once and can act on, carrying every claim and reason in its points,
+and every name, symbol, path, number and link exactly as written.
 
 ## 5. Check each document
 
@@ -69,9 +70,12 @@ written document, its part of the blueprint and the input documents it draws
 on. It enumerates the points at the input lines the blueprint routes to this
 document, from the input documents themselves, and confirms each is present
 in the written document with its meaning intact, that the document asserts
-nothing the input did not, and that every link and anchor in it resolves.
-Each miss it fixes in the document, in the document's own voice, and its
-return is what it fixed.
+nothing the input did not, and that every link and anchor in it resolves. A
+point said in other words, tighter or joined to another keeps its meaning, and
+one that lost or changed a condition, scope, strength, subject or reason, or
+any name, symbol, path, number or link, does not. Each miss it fixes in the
+document, in the document's own voice rather than the input's sentence, and
+its return is what it fixed.
 
 ## 6. Land
 

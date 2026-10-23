@@ -5,11 +5,13 @@ description: Mirror Slack channels, live or archived, into thread-nested markdow
 
 **Bindings.** The verbatim source and the followed channels. Where either is undeclared, stop.
 
-`python3 <this skill's directory>/slack_log.py` fetches, stores and draws the log. Its fetch runs `claude -p` against the claude.ai Slack connector, denied the connector's writes and every shell and file-editing tool. A machine needs Python 3.9 or later and `claude`, found as the Claude Code session running the sync or on its PATH, logged in to an account where that connector is authorised, and reads what that Slack user can read.
+`python3 <this skill's directory>/slack_log.py` fetches, stores and draws the log on Python 3.9 or later. With a Slack user token in its environment as `SLACK_USER_TOKEN`, it reads Slack's Web API as that user at no model cost. The token's app needs the user scopes `channels:history`, `groups:history`, `im:history` and `mpim:history`, the four matching `:read` scopes, and `users:read`. A token Slack refuses fails the run rather than falling back.
+
+Without a token, its fetch runs `claude -p` against the claude.ai Slack connector, denied the connector's writes and every shell and file-editing tool, and reads as the Slack user that connector is authorised for. That path needs `claude`, found as the Claude Code session running the sync or on its PATH, logged in to an account where the connector is authorised.
 
 ## The log
 
-Each channel lives in `<verbatim source>/slack/<name>/`, `<name>` being its Slack name, else the `--name` its first sync was given, else its ID. Its `store.json` is the record: each message's author, time, text, reactions and file names as the connector returned them, keyed by timestamp (`ts`). A message deleted in Slack stays. The markdown is redrawn from the store on every sync and never edited: a `<YYYY-MM>.md` file per month by post date, each thread under its parent, a reply also sent to the channel marked `(+channel)`, and `curated.md` wherever a `keep.txt` exists. It keeps every word and drops join and leave notices.
+Each channel lives in `<verbatim source>/slack/<name>/`, `<name>` being its Slack name, else the `--name` its first sync was given, else its ID. Its `store.json` is the record: each message's author, time, text, reactions and file names, keyed by timestamp (`ts`). A message deleted in Slack stays. The markdown is redrawn from the store on every sync and never edited: a `<YYYY-MM>.md` file per month by post date, each thread under its parent, a reply also sent to the channel marked `(+channel)`, and `curated.md` wherever a `keep.txt` exists. It keeps every word and drops join and leave notices.
 
 ## Follow
 
