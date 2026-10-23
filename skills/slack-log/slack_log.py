@@ -247,7 +247,8 @@ class Api:
         self.token = token
         self.people, self.channels = {}, {}
         # The connector writes times in the reading user's Slack timezone, whichever machine syncs
-        self.zone = ZoneInfo(self.person(self.call("auth.test")["user_id"]).get("tz") or "UTC")
+        self.me = self.call("auth.test")["user_id"]
+        self.zone = ZoneInfo(self.person(self.me).get("tz") or "UTC")
 
     def call(self, method, missing_ok=False, **params):
         request = urllib.request.Request(f"https://slack.com/api/{method}?{urllib.parse.urlencode(params)}",
@@ -413,7 +414,6 @@ def sync(cid, out, lookback, since, label, api):
     store = json.loads(path.read_text()) if path else {"channel_id": cid, "messages": {}}
     stored = store["messages"]
     if archived(tree(stored)[0]):
-        print(f"#{store['name']}: archived, nothing to read")
         return
     # Replies surface only through their parent, so later syncs re-read a window of parents and a thread whose parent predates it stops updating
     # The connector hangs on oldest 0, so a backfill from the start asks from the first second instead
@@ -424,6 +424,7 @@ def sync(cid, out, lookback, since, label, api):
     due = [m["ts"] for m in top if m.get("replies") and (
         stored.get(m["ts"], {}).get("replies"), stored.get(m["ts"], {}).get("latest")) != (m["replies"], m["latest"])]
     threads = (api.threads if api else read_threads)(cid, due) if due else {}
+    before = len(stored)
     # The store only adds: a deleted message stays, and an edit lands only while its parent is in the window
     for m in top:
         # On a reply this marks one also sent to the channel
@@ -447,7 +448,9 @@ def sync(cid, out, lookback, since, label, api):
     directory.mkdir(parents=True, exist_ok=True)
     save(directory / "store.json", store)
     render(directory)
-    print(f"#{store['name']}: {len(top)} top-level read, {len(due)} threads read, {len(stored)} held")
+    # Most runs find a conversation quiet, so only one that moved prints a line
+    if len(stored) > before or due:
+        print(f"#{store['name']}: {len(stored) - before} new, {len(due)} threads read, {len(stored)} held")
 
 
 # Slack's wire markup to markdown, leaving every author's word as written
@@ -512,7 +515,7 @@ def render(directory):
                 day = m["time"][:10]
                 out += ["", f"## {datetime.strptime(day, '%Y-%m-%d'):%a %d %b}", ""]
             out += entry(m, 0) + [x for r in replies.get(m["ts"], []) for x in entry(r, 1, day)]
-        (directory / f"{month}.md").write_text("\n".join(out) + "\n")
+        write(directory / f"{month}.md", "\n".join(out) + "\n")
     # Written by whoever curates, one `<parent ts> [# heading]` per line
     keep = directory / "keep.txt"
     if keep.exists():
@@ -523,7 +526,13 @@ def render(directory):
             if m:
                 out += ["", f"## {note.strip() or m['time'][:10]}", ""]
                 out += entry(m, 0, "") + [x for r in replies.get(m["ts"], []) for x in entry(r, 1, m["time"][:10])]
-        (directory / "curated.md").write_text("\n".join(out) + "\n")
+        write(directory / "curated.md", "\n".join(out) + "\n")
+
+
+# An unchanged file keeps its timestamp, so copying to another machine finds nothing new to move
+def write(path, text):
+    if not path.exists() or path.read_text() != text:
+        path.write_text(text)
 
 
 def archived(tops):
