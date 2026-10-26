@@ -2,6 +2,7 @@
 import argparse
 import glob
 import json
+import mimetypes
 import os
 import re
 import sys
@@ -11,6 +12,12 @@ SELF_COMMAND = "/export-session"
 RESUME = {"Claude": "claude --resume", "Gemini": "agy --conversation"}
 # The harness fences a paste in tags of its own, which are not the user's words
 PASTE_FENCE = re.compile(r"</?pasted_content[^>]*>")
+# A message that is only a path as drag and drop leaves it, bare or after /transcribe
+HANDOFF = re.compile(r"(/transcribe\s+)?('[^']+'|\"[^\"]+\"|(?:\\.|\S)+)")
+# transcribe ends the user's own words with a rule before its answer
+RULE = re.compile(r" {0,3}([-*_])(?: *\1){2,} *")
+# transcribe bolds a speaker wherever the recording is not the user alone
+SPEAKER = re.compile(r"\*\*[^*\n]+\*\*")
 
 
 def records(path):
@@ -187,8 +194,57 @@ def read_session(path, user, assistant, parties):
     return turns
 
 
-def quote(text):
-    return "\n".join(f"> {line}" if line.strip() else ">" for line in text.splitlines())
+def handoff(text):
+    match = HANDOFF.fullmatch(text.strip())
+    if match is None:
+        return False
+    if match.group(1):
+        return True
+    # A bare path hands over a recording only, since any other file comes with a question of its own
+    path = re.sub(r"\\(.)", r"\1", match.group(2).strip("'\""))
+    return (mimetypes.guess_type(path)[0] or "").startswith(("audio/", "video/"))
+
+
+def mirror_of(reply):
+    lines = reply.splitlines()
+    start = next((i for i, line in enumerate(lines) if line.startswith(">")), None)
+    if start is None:
+        return None
+    end = start
+    while end < len(lines) and (lines[end].startswith(">") or not lines[end].strip()):
+        end += 1
+    if end == len(lines) or not RULE.fullmatch(lines[end]):
+        return None
+    # Whatever precedes the mirror only fetched the words, so it drops out with the command it answered
+    mirror = "\n".join(re.sub(r"^> ?", "", line) for line in lines[start:end]).strip()
+    if any(SPEAKER.match(line) for line in mirror.splitlines()):
+        return None
+    return mirror, "\n".join(lines[end + 1:]).strip()
+
+
+# A recording of the user alone is their message, so the reply's mirror takes the command's place
+def lift_mirrors(turns, user, assistant):
+    lifted = []
+    for speaker, text in turns:
+        handed = speaker == assistant and lifted and lifted[-1][0] == user and handoff(lifted[-1][1])
+        split = mirror_of(text) if handed else None
+        if split is None:
+            lifted.append((speaker, text))
+            continue
+        mirror, answer = split
+        command = lifted[-1]
+        # The same command sent again before any reply leaves copies that nothing answered
+        while lifted and lifted[-1] == command:
+            lifted.pop()
+        lifted.append((user, mirror))
+        if answer:
+            lifted.append((speaker, answer))
+    return lifted
+
+
+# The line a re-export finds its session's file by
+def id_line(session):
+    return f"Session: {session} · "
 
 
 def render(title, session, harness, turns):
@@ -199,12 +255,31 @@ def render(title, session, harness, turns):
         else:
             merged.append((speaker, [text]))
     # The id leads the file, so a search for it finds the export and the command beside it reopens the session
-    lines = [f"Session: {session} · `{RESUME[harness]} {session}`", ""] if session else []
+    lines = [f"{id_line(session)}`{RESUME[harness]} {session}`", ""] if session else []
     lines.append(f"# {title}")
-    # Quoted whole, so a heading or rule a speaker wrote cannot open a section of the page the export is pasted into
+    # A speaker's headings and rules render as the page's own
     for speaker, texts in merged:
-        lines += ["", f"**{speaker}:**", "", quote("\n\n".join(texts))]
+        lines += ["", f"**{speaker}:**", "", "\n\n".join(texts)]
     return "\n".join(lines) + "\n"
+
+
+def first_line(path):
+    try:
+        with open(path, encoding="utf-8") as f:
+            return f.readline()
+    except (OSError, UnicodeDecodeError):
+        return ""
+
+
+# A session keeps the file its first export wrote in that folder, whatever name a re-export would give it
+def target(out, session):
+    if not session:
+        return out
+    folder = os.path.dirname(os.path.abspath(out))
+    found = [path for path in glob.glob(os.path.join(glob.escape(folder), "*.md")) if first_line(path).startswith(id_line(session))]
+    if len(found) > 1:
+        sys.exit(f"export-session: {' and '.join(found)} each export session {session}; delete all but one")
+    return found[0] if found else out
 
 
 def main():
@@ -222,11 +297,12 @@ def main():
     if len(set(names)) < len(names):
         parser.error(f"--user, each --party and {assistant} need distinct names, since blocks under one name merge")
 
-    turns = read_session(path, args.user, assistant, set(args.party))
+    turns = lift_mirrors(read_session(path, args.user, assistant, set(args.party)), args.user, assistant)
     os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
-    with open(args.out, "w", encoding="utf-8") as f:
+    out = target(args.out, session)
+    with open(out, "w", encoding="utf-8") as f:
         f.write(render(args.title, session, harness, turns))
-    print(args.out)
+    print(out)
 
 
 if __name__ == "__main__":

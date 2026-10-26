@@ -1,6 +1,6 @@
 ---
 name: export-session
-description: Write this session out as a labeled Markdown transcript — the user's messages and everything the assistant said, none of its tool calls — for the user to hand another party, headed by the command that reopens the session
+description: Write this session out as a labeled Markdown transcript of its dialogue, none of its tool calls, for the user to hand another party, headed by the command that reopens the session
 ---
 
 Run one command, and read neither the transcript nor the file it writes. In
@@ -17,7 +17,8 @@ can neither find the transcript nor write the file.
 - **`--out`** is an absolute path: the one the user gave, or else
   `sessions/<YYYY-MM-DD>-<topic>.md` under the knowledge base's root, dated today,
   its topic the title lowercased with each run of anything but letters and digits
-  made a hyphen and none left at either end
+  made a hyphen and none left at either end. Where the folder `--out` names
+  already holds an export of this session, the script overwrites that instead
 - **`--user`** is the user's name, where the session's instructions give one
 - **`--assistant`** is the assistant's name, where it differs from the
   transcript's default: `Claude` for Claude Code, `Gemini` for Antigravity
