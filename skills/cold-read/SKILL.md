@@ -16,7 +16,8 @@ A writer cannot grade what it wrote (**Cold Reader**, `RUBRIC.md` §1).
    - every skill in this knowledge base and the core that invokes a changed skill
      or reads a changed file, found by searching both for its name, since an edit
      to a shared contract breaks there
-   - every document in the core, where a changed file is in the core
+   - `RUBRIC.md`, and every other document in the core where a changed file is
+     in the core
    - the file every session reads
 
 3. **Ask for these, keyed by sentence in each changed file**, a finding on text
@@ -25,6 +26,7 @@ A writer cannot grade what it wrote (**Cold Reader**, `RUBRIC.md` §1).
    - every sentence that restates another, in any file handed over
    - every pair of sentences that cannot both be followed, in any file handed
      over
+   - every breach of **No Examples** (`RUBRIC.md`)
 
    For a changed skill:
    - every point where, walking its steps cold, it would stall, guess or need
