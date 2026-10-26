@@ -14,10 +14,10 @@ RESUME = {"Claude": "claude --resume", "Gemini": "agy --conversation"}
 PASTE_FENCE = re.compile(r"</?pasted_content[^>]*>")
 # A message that is only a path as drag and drop leaves it, bare or after /transcribe
 HANDOFF = re.compile(r"(/transcribe\s+)?('[^']+'|\"[^\"]+\"|(?:\\.|\S)+)")
-# transcribe ends the user's own words with a rule before its answer
+# A rule parts transcribe's mirror from any answer that follows
 RULE = re.compile(r" {0,3}([-*_])(?: *\1){2,} *")
-# transcribe bolds a speaker wherever the recording is not the user alone
-SPEAKER = re.compile(r"\*\*[^*\n]+\*\*")
+# transcribe's speaker label
+SPEAKER = re.compile(r"\*\*([^*\n:]+):\*\*[ \t]*")
 
 
 def records(path):
@@ -213,16 +213,31 @@ def mirror_of(reply):
     end = start
     while end < len(lines) and (lines[end].startswith(">") or not lines[end].strip()):
         end += 1
-    if end == len(lines) or not RULE.fullmatch(lines[end]):
+    if end < len(lines) and not RULE.fullmatch(lines[end]):
         return None
     # Whatever precedes the mirror only fetched the words, so it drops out with the command it answered
     mirror = "\n".join(re.sub(r"^> ?", "", line) for line in lines[start:end]).strip()
-    if any(SPEAKER.match(line) for line in mirror.splitlines()):
+    # With no answer to rule it off, only a speaker's label tells a mirror from any other quote
+    if end == len(lines) and not SPEAKER.match(mirror):
         return None
     return mirror, "\n".join(lines[end + 1:]).strip()
 
 
-# A recording of the user alone is their message, so the reply's mirror takes the command's place
+def voices(mirror, user):
+    turns = []
+    for line in mirror.splitlines():
+        match = SPEAKER.match(line)
+        if match:
+            turns.append((match.group(1).strip(), [line[match.end():]]))
+        elif turns:
+            turns[-1][1].append(line)
+        # transcribe labels no one in a recording of the user alone, so unlabelled words are theirs
+        else:
+            turns.append((user, [line]))
+    return [(speaker, "\n".join(lines).strip()) for speaker, lines in turns if "".join(lines).strip()]
+
+
+# A recording handed over is its speakers' own words, so its mirror takes the command's place
 def lift_mirrors(turns, user, assistant):
     lifted = []
     for speaker, text in turns:
@@ -236,7 +251,7 @@ def lift_mirrors(turns, user, assistant):
         # The same command sent again before any reply leaves copies that nothing answered
         while lifted and lifted[-1] == command:
             lifted.pop()
-        lifted.append((user, mirror))
+        lifted += voices(mirror, user)
         if answer:
             lifted.append((speaker, answer))
     return lifted
