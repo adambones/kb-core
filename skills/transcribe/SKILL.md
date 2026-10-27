@@ -18,10 +18,11 @@ description: Turn a recording, or the machine transcript of one, into a polished
 3. **Mirror what was said.**
    - Fix transcription errors against the names and terms the knowledge base
      uses
-   - Unless the recording is of the user alone, open each turn with its speaker
-     in bold, by the name a caller gives or the knowledge base uses, attributed
-     by voice where you hear it and otherwise by what is said, and mark a turn
-     nothing attributes `Unclear`. A voice in the background takes no part
+   - Unless the recording is of the user alone, open each turn with its
+     speaker's label, `**Name:**`, by the name a caller gives or the knowledge
+     base uses, attributed by voice where you hear it and otherwise by what is
+     said, and mark a turn nothing attributes `Unclear`. A voice in the
+     background takes no part
    - Make small fixes to grammar and punctuation, and trim stutters, false
      starts and excess filler. Keep each speaker's words, order and colour:
      never summarise or paraphrase
