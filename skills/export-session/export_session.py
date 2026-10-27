@@ -7,9 +7,9 @@ import os
 import re
 import sys
 
-SELF_COMMAND = "/export-session"
+SELF_COMMANDS = ("/export-session", "$export-session")
 # Keyed by harness, each named for the assistant its transcripts default to
-RESUME = {"Claude": "claude --resume", "Gemini": "agy --conversation"}
+RESUME = {"Claude": "claude --resume", "Gemini": "agy --conversation", "Codex": "codex resume"}
 # The harness fences a paste in tags of its own, which are not the user's words
 PASTE_FENCE = re.compile(r"</?pasted_content[^>]*>")
 # A message that is only a path as drag and drop leaves it, bare or after /transcribe
@@ -32,8 +32,12 @@ def records(path):
 
 def find_transcript(session):
     if os.path.isfile(session):
-        # Antigravity records carry step_index at the top level, where Claude Code's carry none
-        harness = "Gemini" if "step_index" in next(records(session), {}) else "Claude"
+        first = next(records(session), {})
+        if first.get("type") == "session_meta":
+            harness = "Codex"
+        else:
+            # Antigravity records carry step_index at the top level, where Claude Code's carry none
+            harness = "Gemini" if "step_index" in first else "Claude"
         return session, harness, session_of(session, harness)
     # A Claude Code session files under the directory it started in, which the id does not name
     claude_root = os.environ.get("CLAUDE_CONFIG_DIR", os.path.expanduser("~/.claude"))
@@ -48,11 +52,20 @@ def find_transcript(session):
         matches = glob.glob(os.path.join(gemini_root, "*", "brain", glob.escape(session), ".system_generated", "logs", name))
         if matches:
             return matches[0], "Gemini", session
-    sys.exit(f"export-session: no transcript for session {session} under {claude_root}/projects or {gemini_root}/*/brain")
+    codex_root = os.environ.get("CODEX_HOME", os.path.expanduser("~/.codex"))
+    for folder in ("sessions", "archived_sessions"):
+        matches = glob.glob(os.path.join(glob.escape(codex_root), folder, "**", f"rollout-*-{glob.escape(session)}.jsonl"), recursive=True)
+        if len(matches) > 1:
+            sys.exit(f"export-session: multiple Codex transcripts for session {session}; pass a transcript path")
+        if matches:
+            return matches[0], "Codex", session
+    sys.exit(f"export-session: no transcript for session {session} under {claude_root}/projects, {gemini_root}/*/brain or {codex_root}")
 
 
 # A moved transcript keeps no id, since a wrong one would reopen another session
 def session_of(path, harness):
+    if harness == "Codex":
+        return next((r.get("payload", {}).get("id") for r in records(path) if r.get("type") == "session_meta"), None)
     if harness == "Claude":
         return next((r["sessionId"] for r in records(path) if "sessionId" in r), None)
     # Antigravity records carry none, so only the conversation folder above .system_generated names it
@@ -68,10 +81,9 @@ def filter_command(raw):
     command = re.search(r"<command-name>(.*?)</command-name>", raw, re.S)
     if command is None:
         text = PASTE_FENCE.sub("", raw).strip()
-        # Antigravity sends a slash command as bare text, untagged
-        return None if text == SELF_COMMAND or text.startswith(SELF_COMMAND + " ") else text
+        return None if any(text == name or text.startswith(name + " ") or text.startswith(name + "\n") for name in SELF_COMMANDS) else text
     name = command.group(1).strip()
-    if name == SELF_COMMAND:
+    if name in SELF_COMMANDS:
         return None
     args = re.search(r"<command-args>(.*?)</command-args>", raw, re.S)
     return f"{name} {args.group(1).strip() if args else ''}".strip()
@@ -109,6 +121,61 @@ def speaker_of(text, user, parties):
     if first.strip() in parties and rest.strip():
         return first.strip(), rest.strip()
     return user, text
+
+
+def codex_text(content):
+    parts = []
+    for block in content or []:
+        kind = block.get("type", "").lower()
+        if kind == "text":
+            parts.append(block.get("text", ""))
+        elif kind in ("image", "localimage"):
+            parts.append("[image]")
+    return "\n\n".join(parts).strip()
+
+
+def read_codex_session(path, user, assistant, parties):
+    turns, reply, humans, exporting = [], [], 0, False
+
+    def flush():
+        if reply and not exporting:
+            turns.append((assistant, "\n\n".join(reply)))
+        reply.clear()
+
+    # UI events distinguish dialogue from injected context and its duplicate model inputs
+    for record in records(path):
+        if record.get("type") != "event_msg":
+            continue
+        payload = record.get("payload") or {}
+        kind = payload.get("type")
+        item = payload.get("item") or {}
+        if kind == "item_completed":
+            role = {"UserMessage": "user", "AgentMessage": "assistant"}.get(item.get("type"))
+            text = codex_text(item.get("content")) if role else ""
+        elif kind in ("user_message", "agent_message"):
+            role = "user" if kind == "user_message" else "assistant"
+            text = (payload.get("message") or "").strip()
+            if role == "user" and (payload.get("images") or payload.get("local_images")):
+                text = (text + "\n\n[image]").strip()
+        elif kind in ("task_complete", "task_aborted", "turn_aborted"):
+            flush()
+            exporting = False
+            continue
+        else:
+            continue
+        if role == "user":
+            text = human_text(text)
+            flush()
+            exporting = text is None
+            if text:
+                humans += 1
+                turns.append(speaker_of(text, user, parties))
+        elif role == "assistant" and text:
+            reply.append(text)
+    if humans == 0:
+        sys.exit(f"export-session: no message in {path} came from the user; the transcript format may have changed")
+    # An open turn can contain the export command's own progress messages
+    return turns
 
 
 def read_session(path, user, assistant, parties):
@@ -294,7 +361,11 @@ def target(out, session):
     found = [path for path in glob.glob(os.path.join(glob.escape(folder), "*.md")) if first_line(path).startswith(id_line(session))]
     if len(found) > 1:
         sys.exit(f"export-session: {' and '.join(found)} each export session {session}; delete all but one")
-    return found[0] if found else out
+    if found:
+        return found[0]
+    if os.path.exists(out):
+        sys.exit(f"export-session: {out} already exists and does not export session {session}; choose another --out")
+    return out
 
 
 def main():
@@ -312,9 +383,12 @@ def main():
     if len(set(names)) < len(names):
         parser.error(f"--user, each --party and {assistant} need distinct names, since blocks under one name merge")
 
-    turns = lift_mirrors(read_session(path, args.user, assistant, set(args.party)), args.user, assistant)
+    reader = read_codex_session if harness == "Codex" else read_session
+    turns = lift_mirrors(reader(path, args.user, assistant, set(args.party)), args.user, assistant)
     os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
     out = target(args.out, session)
+    if os.path.realpath(out) == os.path.realpath(path):
+        sys.exit("export-session: the output path is the source transcript; choose another --out")
     with open(out, "w", encoding="utf-8") as f:
         f.write(render(args.title, session, harness, turns))
     print(out)
