@@ -27,11 +27,11 @@ coming.
 
 ## The cold half goes to a fresh agent
 
-An author cannot cold-read its own comments (**Cold Reader**, `RUBRIC.md` §1).
+An author cannot cold-read its own comments (**Cold Reader**, `core/RUBRIC.md` §1).
 Spawn a fresh agent —
 never a conversation fork, which inherits this context and is the same warm reader
 wearing a hat. Hand it the diff and the comment rules from
-`IMPLEMENTATION.md` §2, and nothing else. Not the conversation, not the
+`core/IMPLEMENTATION.md` §2, and nothing else. Not the conversation, not the
 design, not what the change is for. Its blindness is the instrument.
 
 One thing joins the handout when the diff is in a repository the knowledge base's

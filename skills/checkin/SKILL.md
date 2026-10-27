@@ -13,7 +13,7 @@ diff, not from session memory.
    target. Every line it prints goes in the report, and none of them stops the
    commit.
 
-2. **Read `MESSAGING.md`.** It holds the writing rules the title and body apply.
+2. **Read `core/MESSAGING.md`.** It holds the writing rules the title and body apply.
    Do not write from memory of them.
 
 3. **Stage.** Where a skill or root document this session used stalled, misled

@@ -11,7 +11,7 @@ git clone https://github.com/adambones/kb-core.git core
 core/sync
 ```
 
-`core/sync` links each rubric file at the knowledge base's root, where the skills cite it, and each skill into every directory the agents discover skills from — `.claude/skills` for Claude Code, `.agents/skills` for Codex, Gemini CLI and Antigravity — creating both where neither exists. It adds `/core` to `.gitignore`, creates each slot below, with a line of its own there for each the table marks ignored, and names each Always role below that the knowledge base has not bound. `checkin` runs it each time, so what the core gains reaches each knowledge base with no step of its own.
+`core/sync` links each skill into every directory the agents discover skills from — `.claude/skills` for Claude Code, `.agents/skills` for Codex, Gemini CLI and Antigravity — creating both where neither exists. It removes any link at the knowledge base's root into the core, since the skills cite the core's rubrics in place, as `core/<name>.md`. It adds `/core` to `.gitignore`, creates each slot below, with a line of its own there for each the table marks ignored, and names each Always role below that the knowledge base has not bound and each file that would keep Claude Code from reading `AGENTS.md`. `checkin` runs it each time, so what the core gains reaches each knowledge base with no step of its own.
 
 The checkout sits inside the knowledge base so every committed link is relative and resolves on any machine.
 
@@ -23,15 +23,15 @@ Start the knowledge base's documents from the core alone. Seeding it with anothe
 
 ## Bind
 
-The file every session reads — `AGENTS.md`, with `CLAUDE.md` a link to it for Claude Code — declares each role below under a Bindings heading.
+`AGENTS.md`, the file every session reads, declares each role below under a Bindings heading. Claude Code reads it only where no `CLAUDE.md`, `.claude/CLAUDE.md` or `CLAUDE.local.md` sits in the directory a session starts in or any above it ([Claude Code's AGENTS.md support](https://code.claude.com/docs/en/memory#agents-md)), so none sits at or above the knowledge base's root.
 
 | Role | Asked for by | Needed |
 |------|--------------|--------|
-| Source of truth | `RUBRIC.md`, `deliberate`, `teach-me` | Always |
-| Homes | `RUBRIC.md` | Always |
-| Lifecycles | `RUBRIC.md`, `deliberate`, `audit-comments`, `improve-docs` | Always |
-| Slots | `RUBRIC.md` | Always |
-| Audience — who messages reach | `MESSAGING.md`, `distill` | Always |
+| Source of truth | `core/RUBRIC.md`, `deliberate`, `teach-me` | Always |
+| Homes | `core/RUBRIC.md` | Always |
+| Lifecycles | `core/RUBRIC.md`, `deliberate`, `audit-comments`, `improve-docs` | Always |
+| Slots | `core/RUBRIC.md` | Always |
+| Audience — who messages reach | `core/MESSAGING.md`, `distill` | Always |
 | Product truth — what the product is | `deliberate`, `distill` | Where the knowledge base has one |
 | Shared repositories — where its writing lands in a repository another audience reads | `checkin`, `audit-comments`, `improve-docs` | Where the knowledge base has one |
 | Verbatim source — where other parties' own words live | `deliberate`, `slack-log` | Where the knowledge base has one |
@@ -55,11 +55,11 @@ The core leaves each knowledge base its orchestrators, the skills that sequence 
 
 | Skill | Does | Needed |
 |-------|------|--------|
-| A writer of documents | Reads `RUBRIC.md` | Always |
+| A writer of documents | Reads `core/RUBRIC.md` | Always |
 | A writer of skills or root documents | Reads the suggestions file `suggest` names for each file it changes, deletes each line the change settles, puts each it leaves to the user, and invokes `cold-read` after the change | Always |
 | A recording step | Invokes `checkin` | Always |
-| A writer of code | Reads `IMPLEMENTATION.md` §§1–2 before the first edit, then invokes `audit-comments` | Where the knowledge base writes code |
-| A reviewer of code | Reads `IMPLEMENTATION.md` §3 | Where the knowledge base reviews code |
+| A writer of code | Reads `core/IMPLEMENTATION.md` §§1–2 before the first edit, then invokes `audit-comments` | Where the knowledge base writes code |
+| A reviewer of code | Reads `core/IMPLEMENTATION.md` §3 | Where the knowledge base reviews code |
 | A schedule | Runs `slack-log`'s `sync` over the followed channels | Where the knowledge base follows Slack |
 | A mode of `deliberate` | Holds a `role.md`, the deliverable its panel writes, and optionally a `check.md` its critics and check grade against; writes a `seal.txt` where the panel must not read beyond a list; invokes `deliberate` with those paths on its input's first line, and carries the record out once the run returns | Where the knowledge base asks for a deliverable other than a decision |
 

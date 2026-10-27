@@ -30,7 +30,7 @@ it is neither, every fix is asked and the audit is skipped.
 
 Six fresh agents, one per reviewer below, run in parallel. Hand each the
 checkout, the reading paths, the command that produces the scope or the files a
-path names, its own angles, and the sections of `IMPLEMENTATION.md` they cite,
+path names, its own angles, and the sections of `core/IMPLEMENTATION.md` they cite,
 with §3's preservation inventory as what a contract is. Ask each for every
 candidate it can name a scenario or a cost for, the half-believed included, keyed
 by `file:line`, with whether the fix would change a contract.
@@ -43,12 +43,12 @@ by `file:line`, with whether the fix would change a contract.
   - new code re-implementing what the codebase already has, found by searching the shared modules and the files beside the change, naming the helper to call instead
 - **Simplification**
   - redundant or derivable state, copy-paste with slight variation, deep nesting and dead code, naming the simpler form
-  - the red pen in `IMPLEMENTATION.md` §3, and every breach of its §1 and of the conventions the repository's code and docs set, quoting the rule and the line
+  - the red pen in `core/IMPLEMENTATION.md` §3, and every breach of its §1 and of the conventions the repository's code and docs set, quoting the rule and the line
 - **Efficiency**
   - repeated work or I/O, independent operations run in sequence, work added to startup or a hot path, and long-lived closures holding scope they do not need, naming the cheaper form
 - **Altitude**
   - a symptom patched where a general change to the mechanism beneath it is cheaper, naming that change
-  - the structural register in `IMPLEMENTATION.md` §3
+  - the structural register in `core/IMPLEMENTATION.md` §3
 - **Deletion**
   - every mechanism the change adds, and what would break without it, counting only its users beyond its own tests, in the checkout and the reading paths
   - every hedge: code serving a need that nothing in the checkout or the reading paths has yet
@@ -59,7 +59,7 @@ by `file:line`, with whether the fix would change a contract.
 Verify each candidate against the code before it counts. Merge duplicates, ask
 wherever two fixes contradict, and sort:
 
-- **Applied** — a fix that changes no contract. Unlike an `IMPLEMENTATION.md` §3
+- **Applied** — a fix that changes no contract. Unlike a `core/IMPLEMENTATION.md` §3
   review, a defect whose fix restores what the code's comments, tests and
   documents already promise is applied too
 - **Asked** — a fix that changes a contract, and every cut the deletion reviewer
@@ -72,7 +72,7 @@ applied.
 
 ## Apply
 
-Read `IMPLEMENTATION.md` §§1–2 before the first fix. Run the repository's tests
+Read `core/IMPLEMENTATION.md` §§1–2 before the first fix. Run the repository's tests
 before it as well, so a test already red is charged to no fix. Then make the
 applied fixes, testing after each or bisecting a batch that turns a test red. A fix
 that turns a test red changes a contract after all, so revert it and ask. Where

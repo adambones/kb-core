@@ -4,7 +4,7 @@ A message about the work is a pointer to where its substance lives: the fewest w
 
 ## What a message carries
 
-**One Home** (`RUBRIC.md`) governs a message as it governs a document.
+**One Home** (`core/RUBRIC.md`) governs a message as it governs a document.
 
 **Projection.** Name what the change means for the reader, never its contents. Whoever wants the inventory opens the artifact. The deletion rules compress a sentence once it has the projection, and never generate one.
 
@@ -26,4 +26,4 @@ Read each sentence and ask whether removing it changes what the reader can do. I
 
 **State it once.** A sentence restating the previous fact as its complement adds words, not information.
 
-**Ghost Correction** and **No Examples** (`RUBRIC.md`) govern a message as they govern a document. A list of the instances a statement covers dies from its first item.
+**Ghost Correction** and **No Examples** (`core/RUBRIC.md`) govern a message as they govern a document. A list of the instances a statement covers dies from its first item.

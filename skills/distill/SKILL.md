@@ -10,7 +10,7 @@ tone — themselves. Never draft them.
 
 ## Steps
 
-1. **Load the voice.** Read `MESSAGING.md` — One Home and the deletion
+1. **Load the voice.** Read `core/MESSAGING.md` — One Home and the deletion
    rules apply to payloads too — and the knowledge base's audience
    binding. What the product is comes from its product-truth binding,
    where it declares one.

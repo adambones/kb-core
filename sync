@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Pull the core, link its rubric and skills into the knowledge base that holds it, create the slots its README names (ignoring each it marks ignored), and flag each required role the Bindings section does not name.
+"""Pull the core, link its skills into the knowledge base that holds it, create the slots its README names (ignoring each it marks ignored), and flag each required role the Bindings section omits, and each file that keeps Claude Code from reading AGENTS.md.
 
 Run as `core/sync`; `--no-pull` skips the fetch. Prints one line per change and one
-`attention:` line per thing a person must resolve. The only link it removes is one
-into the core whose target the core has retired.
+`attention:` line per thing a person must resolve. The links it removes lead into the
+core: one whose target the core has retired, and any `.md` link at the knowledge
+base's root.
 """
 
 import argparse
@@ -18,7 +19,9 @@ SKILLS = os.path.join(CORE, "skills")
 
 # The directories every client discovers skills through; either may be a link to one directory the knowledge base keeps
 ADAPTERS = (".claude/skills", ".agents/skills")
-INSTRUCTIONS = ("AGENTS.md", "CLAUDE.md")
+INSTRUCTIONS = "AGENTS.md"
+# Either in a session's start directory or above it turns off Claude Code's reading of AGENTS.md
+CLAUDE_FILES = ("CLAUDE.md", "CLAUDE.local.md")
 FETCH_SECONDS = 60
 
 
@@ -152,12 +155,14 @@ def skill_directories():
     return found
 
 
-def link_rubric(fetched):
-    prune(KB, fetched)
-    # Every markdown file at the core's root but the README is a rubric the skills cite by its root name
-    for name in sorted(os.listdir(CORE)):
-        if name.endswith(".md") and name != "README.md":
-            link(os.path.join(KB, name), os.path.join(CORE, name))
+def unlink_rubric():
+    # A root link into the core puts a second path on a rubric the skills cite as core/<name>.md
+    for name in sorted(os.listdir(KB)):
+        path = os.path.join(KB, name)
+        if name.endswith(".md") and os.path.islink(path) and target_of(path).startswith(CORE + os.sep):
+            cited = shown(target_of(path))
+            os.remove(path)
+            attention("removed %s, so cite it as %s wherever the knowledge base's own files name it" % (shown(path), cited))
 
 
 def link_skills(fetched):
@@ -274,15 +279,32 @@ def check_bindings():
     if not roles:
         attention("core/README.md lists no Always role, so no binding was checked")
         return
-    candidates = [os.path.join(KB, name) for name in INSTRUCTIONS if os.path.isfile(os.path.join(KB, name))]
-    # Either file may be the other's link or stub, so the first holding the heading is the one declaring
-    section = next((s for s in (bindings_section(path) for path in candidates) if s is not None), None)
+    path = os.path.join(KB, INSTRUCTIONS)
+    if not os.path.isfile(path):
+        attention("there is no %s, the file every session reads" % INSTRUCTIONS)
+        return
+    section = bindings_section(path)
     if section is None:
-        attention("neither %s has a Bindings section" % " nor ".join(INSTRUCTIONS))
+        attention("%s has no Bindings section" % INSTRUCTIONS)
         return
     for role in roles:
         if role.casefold() not in section.casefold():
             attention("the Bindings section names no %s, which every knowledge base binds" % role.lower())
+
+
+def check_instructions():
+    # A .claude/CLAUDE.md counts at the root alone, since the one above it in the home directory is the user's own and loads beside AGENTS.md
+    paths = [os.path.join(KB, ".claude", "CLAUDE.md")]
+    # Sessions start at the root or beneath it, so only the root and its ancestors reach every one
+    directory = KB
+    while True:
+        paths += [os.path.join(directory, name) for name in CLAUDE_FILES]
+        if os.path.dirname(directory) == directory:
+            break
+        directory = os.path.dirname(directory)
+    for path in paths:
+        if os.path.lexists(path):
+            attention("%s turns off Claude Code's reading of every %s beneath it" % (shown(path), INSTRUCTIONS))
 
 
 def main():
@@ -293,12 +315,13 @@ def main():
     if os.path.basename(CORE) != "core" or not os.path.exists(os.path.join(KB, ".git")):
         sys.exit("sync: %s is not a core/ checkout inside a knowledge base's repository" % CORE)
     fetched = False if args.no_pull else pull()
-    link_rubric(fetched)
+    unlink_rubric()
     link_skills(fetched)
     # The checkout is cloned rather than created, so it is no row in the Slots table
     gitignore("core")
     make_slots()
     check_bindings()
+    check_instructions()
 
 
 if __name__ == "__main__":

@@ -12,15 +12,15 @@ Code style, insight comments and structural health. Skills own procedure; a repo
 
 ## 2. Insight comments
 
-Annotate any non-obvious constraint, decision or boundary. The **Cold Reader** question (`RUBRIC.md` §1) turned on a comment: what question does a reader of the *finished file* ask that it does not answer? No question, no comment. Your session is not a source of questions, and neither is the version you replaced.
+Annotate any non-obvious constraint, decision or boundary. The **Cold Reader** question (`core/RUBRIC.md` §1) turned on a comment: what question does a reader of the *finished file* ask that it does not answer? No question, no comment. Your session is not a source of questions, and neither is the version you replaced.
 
 Four rules govern every comment. Write each to all four; `audit-comments` grades them with a reader that never had the session.
 
 **Format.** Single unwrapped line, no trailing period. Write a newspaper headline: the most insight in the fewest words. Cut words before splitting a line, and split before cutting the insight — a split line is a complete thought, not a continuation. No length cap; a constraint that needs the whole line gets it.
 
-**Voice.** Code is the specification; comments narrate. The **Source Test** (`RUBRIC.md` §1) holds in a comment's form, the code being a comment's source of truth: never restate a mechanism or a symbol the source already shows. Name the mental frame, the unseen constraint, or the user-visible consequence. Two words are enough where they hand the reader a frame the code withholds.
+**Voice.** Code is the specification; comments narrate. The **Source Test** (`core/RUBRIC.md` §1) holds in a comment's form, the code being a comment's source of truth: never restate a mechanism or a symbol the source already shows. Name the mental frame, the unseen constraint, or the user-visible consequence. Two words are enough where they hand the reader a frame the code withholds.
 
-**Tense.** Comment the present, not the change — **Ghost Correction** (`RUBRIC.md` §1) in a comment's form. A true, present-tense sentence explaining why this form is better than the one you replaced is the same failure, and survives every syntactic reading of this rule.
+**Tense.** Comment the present, not the change — **Ghost Correction** (`core/RUBRIC.md` §1) in a comment's form. A true, present-tense sentence explaining why this form is better than the one you replaced is the same failure, and survives every syntactic reading of this rule.
 
 **Doc comments.** Where a language's tooling enforces a doc convention, the convention wins. It is an exemption from Voice, not a licence: the convention obeyed and nothing more, with insight on its own line beneath.
 

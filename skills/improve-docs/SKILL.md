@@ -7,7 +7,7 @@ description: Rewrite a set of durable documents whole for the reader — redraw 
 
 **Input.** The documents to rewrite, a directory meaning every markdown file
 in it, and any rubric or reference the blueprint and the writers read beside
-`RUBRIC.md`. Where the input names no document, return that and stop.
+`core/RUBRIC.md`. Where the input names no document, return that and stop.
 
 The run's directory is `scratch/improve-docs-<stem>-<YYYY-MM-DD>/`, the stem a
 kebab-case name for the set. Every agent is fresh, runs at the highest
@@ -27,19 +27,19 @@ several points returns several lines, each naming the subject it describes.
 
 ## 2. Blueprint
 
-One agent, handed every return from step 1, `RUBRIC.md` and the rubrics the
+One agent, handed every return from step 1, `core/RUBRIC.md` and the rubrics the
 input names. It searches the knowledge base and every checkout under `code/`
 for references to the documents from outside the set, by path or by name, and
 writes `blueprint.md` to the run's directory:
 
 - The documents the set becomes, each with its subject in one sentence and its
-  path beside the documents it draws on (**Altitude**, `RUBRIC.md` §2): a
+  path beside the documents it draws on (**Altitude**, `core/RUBRIC.md` §2): a
   sub-area grown into a subject of its own becomes a document, a document whose
   points belong inside another's subject merges into it, and a boundary that
   cannot be stated in one sentence stays as it is
 - Under each document, its sections in order from orientation to mechanics,
   and under each section the points it holds, each by its source document and
-  lines (**One Home**, `RUBRIC.md` §1): the points on one concern sit in one
+  lines (**One Home**, `core/RUBRIC.md` §1): the points on one concern sit in one
   section wherever they came from, and two points saying the same thing become
   one
 - Each reference from outside the set, with the document and section it
@@ -57,7 +57,7 @@ launches, and its return is what it fixed.
 ## 4. Write
 
 One agent per document in the blueprint, all launched together, each handed
-that document's part of the blueprint, `RUBRIC.md`, the rubrics and
+that document's part of the blueprint, `core/RUBRIC.md`, the rubrics and
 references the input names, and nothing else of the set. It writes the
 document whole, over the path the blueprint names: a document a person or an
 agent reads once and can act on, carrying every claim and reason in its points,
