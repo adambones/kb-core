@@ -24,7 +24,7 @@
 
 **Every Session.** The file every session reads holds what a session needs before any skill loads: the bindings, a map of which skill gates which work and what each slot admits, and each rule sessions keep breaking before the skill that carries it can load, the one exception to Just in Time. Anything else moves to the narrowest home that governs it, and the file points there.
 
-**One Way.** Knowledge moves from conversation to work in flight to settled truth, and never back.
+**One Way.** Knowledge moves from conversation to work in flight to settled truth, and never back. A home cites no conversation and no working file, and carries what it needs from one.
 
 **Declared Slots.** A writer creates no top-level directory: each is a slot the knowledge base declares or the core fixes. Where none admits its file, the writer raises the gap with the user.
 

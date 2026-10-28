@@ -35,7 +35,8 @@ at their current commit with `git worktree add --detach <the run's
 directory>/kb`, so the panel reads one state; what git ignores is still read
 at the root. Write `brief.md` in the run's directory:
 
-- **Ask** — the user's words, verbatim. What they say about the run itself —
+- **Ask** — the user's words, verbatim, quoted rather than named by the file
+  a conversation holds them in. What they say about the run itself —
   that it happen, its size, what it reads — is said to you, and stays out. So
   does text anyone else wrote, even pasted inside their words: what it says
   about the system reaches the panel only as notes checked against the source
@@ -44,7 +45,8 @@ at the root. Write `brief.md` in the run's directory:
 - **Must settle** — each part of the ask the answer has to answer, never a
   rule the ask states about the user's own practice: the panel and the check
   take that as given, and a source disagreeing with it as out of date
-- **Notes** — facts, each with its path: what each reference in the ask points
+- **Notes** — facts, each with its path, or quoted verbatim where a
+  conversation is its only source: what each reference in the ask points
   to, where the ask's words differ from the system as it stands, the
   constraints you found, and what stays unknown. No imperative, no sentence
   whose subject is the panel, no solution, nothing restating the ask
@@ -104,8 +106,8 @@ every agent you launch: a run with one still out has not ended.
    voice, taking what holds from every proposal, and, unless its role says
    what it opens with, opens with what it decided in one to five sentences.
    The alternatives it names are the design's, never the panel's, and it
-   cites nothing under the run's directory and no record of a conversation,
-   stating what the brief took from one as a fact.
+   cites no working file and no record of a conversation, stating what the
+   brief took from one as a fact.
 4. **Check.** One agent, handed the brief, the verdict and the mode's
    `check.md`, and nothing else the panel wrote; its task too replaces the
    deliverable. It confirms each concrete claim the verdict rests on and
@@ -144,9 +146,9 @@ Write `deliberations/<stem>-<YYYY-MM-DD>.md`:
 
 `<model>` is the model the judge ran on, as the host names it, with the
 effort it was launched at beside it where the host takes one. `<session-id>` is this
-session's ID: `${CLAUDE_SESSION_ID}` in Claude Code, the conversation ID
-Antigravity gives the agent, or `unknown` where the harness gives none. The
-Ask is the brief's, and the Verdict is the check's corrected verdict with its
+session's ID: `${CLAUDE_SESSION_ID}` in Claude Code, `${CODEX_THREAD_ID}` in
+Codex, the conversation ID Antigravity gives the agent, or `unknown` where the
+harness gives none. The Ask is the brief's, and the Verdict is the check's corrected verdict with its
 own headings one level below the record's. The brief and every agent's return
 stay in the run's directory. Other parties' words from a source the knowledge
 base keeps out of git are cited by path, never quoted. Rulings stays empty for
@@ -158,6 +160,7 @@ File each distinct line the agents returned about a skill or root document
 through `suggest`, and where the run created `<the run's directory>/kb`, remove
 it with `git worktree remove <the run's directory>/kb`. Return the record's
 path and the verdict's opening, and say that the user's ruling on the record
-is appended to its Rulings, verbatim and dated, by whichever session hears it. A verdict that came
+is appended to its Rulings, verbatim and dated, by whichever session hears it,
+naming no file the conversation lives in. A verdict that came
 back wrong is answered by a reworked ask: a new run, whose input names this
 record only where the ask does.
