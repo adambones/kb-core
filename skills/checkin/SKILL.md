@@ -7,8 +7,8 @@ A commit is a pointer to its diff, never a record of the session. Write from the
 diff, not from session memory.
 
 1. **Sync the core.** Run `core/sync` from the knowledge base's root, before
-   reading anything the pull could change. Each link and `.gitignore` line it
-   reports adding or removing is this session's change, except a link to a target
+   reading anything the pull could change. Each link, `.gitignore` line and
+   hook it reports adding or removing is this session's change, except a link to a target
    `core/` has not committed, which belongs to whichever session wrote that
    target. Every line it prints goes in the report, and none of them stops the
    commit.
@@ -17,7 +17,7 @@ diff, not from session memory.
    Do not write from memory of them.
 
 3. **Stage.** Where a skill or root document this session used stalled, misled
-   or slowed it, and `suggestions/` does not already say so, invoke `suggest`
+   or slowed it, and its suggestions file does not already say so, invoke `suggest`
    first, so the line rides in this commit. Then stage only what this session
    changed — other dirty files belong to parallel sessions.
    - **Commit by pathspec — `git add` each new path, then `git commit <paths>`,
@@ -42,7 +42,8 @@ diff, not from session memory.
    - **A repository the shared-repository binding names**, where the knowledge
      base declares one: run its formatter first, then write as if a human
      engineer made the change — never reference sessions, agents, reviews, or AI
-     processes. Match the host repo's log dialect
+     processes. Where its log keeps a convention of its own, that convention wins
+     over the one-line title and the empty body
 
 5. **Push.** For each repo committed above, `core/` first so that no knowledge
    base's link lands ahead of its target, and the knowledge base not at all while

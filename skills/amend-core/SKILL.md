@@ -1,6 +1,6 @@
 ---
 name: amend-core
-description: Change the rules or skills every knowledge base shares — invoke before the first edit to any file in `core/`
+description: Change the rules or skills every knowledge base shares — invoke before the first edit to any file in `core/` but its suggestions
 ---
 
 1. **Read `core/RUBRIC.md`.** Read it at this step, never from memory of an

@@ -17,13 +17,15 @@ The checkout sits inside the knowledge base so every committed link is relative 
 
 Turn agent memory off in each agent's settings (No Memories). In Claude Code that is `"autoMemoryEnabled": false` in `.claude/settings.json`.
 
+`core/sync` also installs `core/hooks/commit-gate.py` in `.claude/settings.json`, where Claude Code refuses a commit, a push or a new pull request unless `checkin` is the session's latest skill. A knowledge base whose recording step commits or opens pull requests itself passes that skill's name as an argument after the hook's path there.
+
 Run each agent in its auto mode, which proceeds on routine work and asks only before an irreversible action, since the skills run unattended. In Claude Code that is `"defaultMode": "auto"` under `permissions` in `.claude/settings.json`. In Antigravity it is Agent Mode `auto` in `/config`, one setting for every workspace on the machine.
 
 Start the knowledge base's documents from the core alone. Seeding it with another knowledge base's documents imports that one's traits into a new domain.
 
 ## Bind
 
-`AGENTS.md`, the file every session reads, declares each role below under a Bindings heading. Claude Code reads it only where no `CLAUDE.md`, `.claude/CLAUDE.md` or `CLAUDE.local.md` sits in the directory a session starts in or any above it ([Claude Code's AGENTS.md support](https://code.claude.com/docs/en/memory#agents-md)), so none sits at or above the knowledge base's root.
+`AGENTS.md`, the file every session reads, declares each role below under a Bindings heading, and says that only `checkin` commits and pushes, since a client the commit gate does not reach learns it nowhere else; `core/sync` flags an `AGENTS.md` that never names `checkin`. Claude Code reads it only where no `CLAUDE.md`, `.claude/CLAUDE.md` or `CLAUDE.local.md` sits in the directory a session starts in or any above it ([Claude Code's AGENTS.md support](https://code.claude.com/docs/en/memory#agents-md)), so none sits at or above the knowledge base's root.
 
 | Role | Asked for by | Needed |
 |------|--------------|--------|
@@ -45,9 +47,9 @@ The core fixes these at the knowledge base's root, so no knowledge base declares
 |------|-------|-----|
 | `code/` | Clones of the external repositories the knowledge base's agents work across | ignored |
 | `deliberations/` | One record per `deliberate` run. The run writes it, the session that hears the user's ruling on it appends that ruling verbatim and dated, and nothing else edits it | tracked |
-| `scratch/` | Working files, safe for anything to delete | ignored |
+| `scratch/` | Working files, safe for anything to delete, each top-level entry named for what it serves. `core/sync` deletes an entry once nothing in it has changed for 14 days | ignored |
 | `sessions/` | Agent sessions exported as transcripts | ignored |
-| `suggestions/` | One file per skill or root document, a line per change a session saw it needed and did not make | tracked |
+| `suggestions/` | One file per skill or root document of the knowledge base's own, a line per change a session saw it needed and did not make. The core's skills and documents keep theirs in `core/suggestions/` | tracked |
 
 ## Supply
 
@@ -69,4 +71,4 @@ Every knowledge base runs its tasks through make, so `make help` is the map an a
 
 ## Change
 
-Edit the core through `amend-core`. `core/` is a repository of its own, so its changes never show in the knowledge base's `git status`; `checkin` commits and pushes them there. Two knowledge bases on one machine keep separate checkouts.
+Edit the core through `amend-core`, except `core/suggestions/`, which `suggest` appends to from any knowledge base. `core/` is a repository of its own, so its changes never show in the knowledge base's `git status`; `checkin` commits and pushes them there. Two knowledge bases on one machine keep separate checkouts.

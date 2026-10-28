@@ -1,0 +1,1 @@
+- 2026-10-15 · Plato · unknown · §Review — fans out through the Agent tool, which a subagent already at maximum depth lacks → a single-context fallback for that case
