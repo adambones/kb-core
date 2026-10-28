@@ -22,7 +22,7 @@
 
 **Altitude.** A fact goes in the narrowest document whose scope contains it. A misfiled fact is moved, never dropped.
 
-**Every Session.** The file every session reads holds what a session needs before any skill loads: the bindings, a map of which skill gates which work and what each slot admits, and each rule sessions keep breaking before the skill that carries it can load, the one exception to Just in Time. Anything else moves to the narrowest home that governs it, and the file points there.
+**Every Session.** The file every session reads holds what a session needs before any skill loads: the bindings, a map of which skill gates which work and what each slot admits, each fact every session must know, and each rule sessions keep breaking before the skill that carries it can load, the one exception to Just in Time. A fact held there for every session may restate its home, an exception to One Home. Anything else moves to the narrowest home that governs it, and the file points there.
 
 **One Way.** Knowledge moves from conversation to work in flight to settled truth, and never back. A home cites no conversation and no working file, and carries what it needs from one.
 
