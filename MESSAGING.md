@@ -8,7 +8,7 @@ A message about the work is a pointer to where its substance lives: the fewest w
 
 **Projection.** Name what the change means for the reader, never its contents. Whoever wants the inventory opens the artifact. The deletion rules compress a sentence once it has the projection, and never generate one.
 
-**Identifier Ban.** A message never uses the source's own identifiers, because the artifact it points to carries them.
+**Identifier Ban.** A message never names the symbols or paths in the artifact it points to, since the artifact carries them. A file that is the message's own subject is no such path: its name is the plain word.
 
 ## Shape
 
