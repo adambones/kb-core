@@ -15,11 +15,11 @@ can neither find the transcript nor write the file.
   Antigravity transcripts, so under
   any other harness say so and stop
 - **`--title`** says in a few words what the session was about
-- **`--out`** is an absolute path: the one the user gave, or else
-  `sessions/<YYYY-MM-DD>-<topic>.md` under the knowledge base's root, dated today,
-  its topic the title lowercased with each run of anything but letters and digits
-  made a hyphen and none left at either end. Where the folder `--out` names
-  already holds an export of this session, the script overwrites that instead
+- **`--out`** is an absolute path: the one the user gave, or else the
+  knowledge base's `sessions/` folder with a trailing slash, in which the script
+  names the file for today, the title and the model that wrote most replies.
+  Where the folder already holds an export of this session, the script
+  overwrites that instead
 - **`--user`** is the user's name, where the session's instructions give one
 - **`--assistant`** is the assistant's name, where it differs from the
   transcript's default: `Claude` for Claude Code, `Codex` for Codex, `Gemini` for Antigravity

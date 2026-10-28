@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import argparse
+import collections
+import datetime
 import glob
 import json
 import mimetypes
@@ -18,6 +20,8 @@ HANDOFF = re.compile(r"(/transcribe\s+)?('[^']+'|\"[^\"]+\"|(?:\\.|\S)+)")
 RULE = re.compile(r" {0,3}([-*_])(?: *\1){2,} *")
 # transcribe's speaker label
 SPEAKER = re.compile(r"\*\*([^*\n:]+):\*\*[ \t]*")
+# Gemini's transcript names the model only when the user picks one, in a notice injected into their next input
+MODEL_CHOICE = re.compile(r"changed setting `Model Selection` from .*? to (.+?)\.(?:\s|$)")
 
 
 def records(path):
@@ -71,6 +75,38 @@ def session_of(path, harness):
     # Antigravity records carry none, so only the conversation folder above .system_generated names it
     parts = os.path.abspath(path).split(os.sep)
     return parts[-4] if parts[-3:-1] == [".system_generated", "logs"] else None
+
+
+def model_of(path, harness):
+    """The model that wrote most of the session's replies, as its transcript names it, or None where it never does."""
+    counts, chosen = collections.Counter(), None
+    for record in records(path):
+        kind = record.get("type")
+        # Subagents run on models of their own, so only the main thread's replies count
+        if harness == "Claude" and kind == "assistant" and not record.get("isSidechain"):
+            model = (record.get("message") or {}).get("model")
+            if model and model != "<synthetic>":
+                counts[model] += 1
+        elif harness == "Codex" and kind == "turn_context":
+            model = (record.get("payload") or {}).get("model")
+            if model:
+                counts[model] += 1
+        elif harness == "Gemini" and kind == "USER_INPUT":
+            match = MODEL_CHOICE.search(str(record.get("content") or ""))
+            chosen = match.group(1) if match else chosen
+        elif harness == "Gemini" and kind == "PLANNER_RESPONSE" and chosen:
+            counts[chosen] += 1
+    return counts.most_common(1)[0][0] if counts else None
+
+
+def model_word(model, harness):
+    """The model as one filename word, with no effort or release date, and the harness where the model is unknown."""
+    if not model:
+        return harness.lower()
+    name = re.sub(r"\s*\([^)]*\)", "", model).lower()
+    # Claude's ids open with the vendor, which the family name already implies
+    name = re.sub(r"-\d{8}$", "", re.sub(r"^claude-", "", name))
+    return re.sub(r"[^a-z0-9]+", "-", name).strip("-")
 
 
 def origin_kind(holder):
@@ -329,7 +365,7 @@ def id_line(session):
     return f"Session: {session} · "
 
 
-def render(title, session, harness, turns):
+def render(title, session, harness, model, turns):
     merged = []
     for speaker, text in turns:
         if merged and merged[-1][0] == speaker:
@@ -337,7 +373,8 @@ def render(title, session, harness, turns):
         else:
             merged.append((speaker, [text]))
     # The id leads the file, so a search for it finds the export and the command beside it reopens the session
-    lines = [f"{id_line(session)}`{RESUME[harness]} {session}`", ""] if session else []
+    # The model sits beside the id, not on each label, so exports of one prompt stay distinguishable without splitting a turn where the model changed
+    lines = [f"{id_line(session)}{model + ' · ' if model else ''}`{RESUME[harness]} {session}`", ""] if session else []
     lines.append(f"# {title}")
     # A speaker's headings and rules render as the page's own
     for speaker, texts in merged:
@@ -372,7 +409,7 @@ def main():
     parser = argparse.ArgumentParser(description="Write an agent session out as a labeled transcript of its dialogue")
     parser.add_argument("session", help="the session's id, or its transcript's path")
     parser.add_argument("--title", required=True)
-    parser.add_argument("--out", required=True)
+    parser.add_argument("--out", required=True, help="the file to write, or a folder to name it in: an existing one, or any path ending in a slash")
     parser.add_argument("--user", default="User")
     parser.add_argument("--assistant")
     parser.add_argument("--party", action="append", default=[])
@@ -385,12 +422,19 @@ def main():
 
     reader = read_codex_session if harness == "Codex" else read_session
     turns = lift_mirrors(reader(path, args.user, assistant, set(args.party)), args.user, assistant)
-    os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
-    out = target(args.out, session)
+    model = model_of(path, harness)
+    out = args.out
+    # A folder gets a dated name ending in the model, so runs of one prompt on several models sort side by side
+    if out.endswith(("/", os.sep)) or os.path.isdir(out):
+        topic = re.sub(r"[^a-z0-9]+", "-", args.title.lower()).strip("-")
+        out = os.path.join(out, f"{datetime.date.today().isoformat()}-{topic}-{model_word(model, harness)}.md")
+    os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
+    # A re-export under a new title or on a later day keeps the name its first export got
+    out = target(out, session)
     if os.path.realpath(out) == os.path.realpath(path):
         sys.exit("export-session: the output path is the source transcript; choose another --out")
     with open(out, "w", encoding="utf-8") as f:
-        f.write(render(args.title, session, harness, turns))
+        f.write(render(args.title, session, harness, model, turns))
     print(out)
 
 

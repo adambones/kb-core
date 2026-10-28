@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 from pathlib import Path
@@ -114,6 +115,54 @@ class ExportSessionTests(unittest.TestCase):
         self.assertFalse(second.exists())
         self.assertEqual(first.read_text(),
                          f"Session: {SESSION} · `codex resume {SESSION}`\n\n# Export\n\n**Reader:**\n\nHello\n\n**Codex:**\n\nWorld\n")
+
+    def test_model_is_the_one_behind_most_replies(self):
+        claude = self.transcript([
+            {"type": "assistant", "message": {"model": "claude-opus-5-5", "content": []}},
+            {"type": "assistant", "message": {"model": "claude-opus-5-5", "content": []}},
+            {"type": "assistant", "message": {"model": "claude-fable-5-1", "content": []}},
+            {"type": "assistant", "isSidechain": True, "message": {"model": "claude-haiku-4-5-20251001", "content": []}},
+            {"type": "assistant", "isSidechain": True, "message": {"model": "claude-haiku-4-5-20251001", "content": []}},
+            {"type": "assistant", "isApiErrorMessage": True, "message": {"model": "<synthetic>", "content": []}},
+        ], self.root / "claude.jsonl")
+        codex = self.transcript([
+            {"type": "turn_context", "payload": {"model": "gpt-6.1-sol"}},
+            {"type": "turn_context", "payload": {"model": "gpt-6.1-sol"}},
+        ], self.root / "codex.jsonl")
+        notice = "The user changed setting `Model Selection` from None to Gemini 4 Argon (High). No need to comment on this change."
+        gemini = self.transcript([
+            {"step_index": 0, "type": "USER_INPUT", "content": f"<USER_SETTINGS_CHANGE>\n{notice}\n</USER_SETTINGS_CHANGE>"},
+            {"step_index": 1, "type": "PLANNER_RESPONSE", "content": "Answer"},
+        ], self.root / "gemini.jsonl")
+        unnamed = self.transcript([{"step_index": 1, "type": "PLANNER_RESPONSE", "content": "Answer"}], self.root / "unnamed.jsonl")
+        self.assertEqual(exporter.model_of(claude, "Claude"), "claude-opus-5-5")
+        self.assertEqual(exporter.model_of(codex, "Codex"), "gpt-6.1-sol")
+        self.assertEqual(exporter.model_of(gemini, "Gemini"), "Gemini 4 Argon (High)")
+        self.assertIsNone(exporter.model_of(unnamed, "Gemini"))
+
+    def test_model_word_drops_vendor_date_and_effort(self):
+        for model, word in (("claude-opus-5-5", "opus-5-5"), ("claude-haiku-4-5-20251001", "haiku-4-5"),
+                            ("gpt-6.1-sol", "gpt-6-1-sol"), ("Gemini 4 Argon (High)", "gemini-4-argon"), (None, "gemini")):
+            with self.subTest(model=model):
+                self.assertEqual(exporter.model_word(model, "Gemini"), word)
+
+    def test_cli_names_a_file_in_a_folder_and_keeps_it_on_reexport(self):
+        path = self.transcript([
+            {"type": "session_meta", "payload": {"id": SESSION}},
+            {"type": "turn_context", "payload": {"model": "gpt-6.1-sol"}},
+            message("user", "Hello"), message("assistant", "World"), event("task_complete"),
+        ])
+        folder = self.root / "sessions"
+        written = []
+        for title in ("Core Housekeeping!", "Another title"):
+            result = subprocess.run([
+                sys.executable, str(Path(exporter.__file__)), path, "--title", title, "--out", f"{folder}/",
+            ], check=True, capture_output=True, text=True)
+            written.append(result.stdout.strip())
+        today = datetime.date.today().isoformat()
+        self.assertEqual(written, [str(folder / f"{today}-core-housekeeping-gpt-6-1-sol.md")] * 2)
+        self.assertTrue(Path(written[0]).read_text().startswith(
+            f"Session: {SESSION} · gpt-6.1-sol · `codex resume {SESSION}`\n\n# Another title\n"))
 
     def test_existing_harnesses_still_export(self):
         fixtures = [
