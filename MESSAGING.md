@@ -20,7 +20,7 @@ A message about the work is a pointer to where its substance lives: the fewest w
 
 ## Deletion rules
 
-Read each sentence and ask whether removing it changes what the reader can do. If not, cut it. The rules are scissors, not sandpaper: leave the fragment a cut makes rather than smoothing it back into a sentence.
+Read each sentence and ask whether removing it changes what the reader can do. If not, cut it.
 
 **Plain Word.** A shorter, simpler sentence with the same meaning is sitting unused.
 
