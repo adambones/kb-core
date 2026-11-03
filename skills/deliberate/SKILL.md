@@ -45,18 +45,31 @@ at the root. Write `brief.md` in the run's directory:
 - **Must settle** — each part of the ask the answer has to answer, never a
   rule the ask states about the user's own practice: the panel and the check
   take that as given, and a source disagreeing with it as out of date
-- **Notes** — facts, each with its path, or quoted verbatim where a
-  conversation is its only source: what each reference in the ask points
-  to, where the ask's words differ from the system as it stands, the
-  constraints you found, and what stays unknown. No imperative, no sentence
-  whose subject is the panel, no solution, nothing restating the ask
-- **Reading** — the files to read first, outside in, a line each on why: what
+- **Notes** — facts, each with its path, with the command and the time it
+  ran where it is live state outside the repositories, or quoted verbatim
+  where a conversation is its only source: what each reference in the ask
+  points to, where the ask's words differ from the system as it stands, the
+  constraints you found, and what stays unknown. A fact about how the system
+  behaves is confirmed against the source of truth, never a document
+  restating it, and a source called unreadable is tried by a second route
+  first. No imperative, no sentence whose subject is the
+  panel, no solution, nothing restating the ask
+- **Reading** — the files to start from, outside in, a line each on why: what
   shows what kind of thing this is, the files at the centre of the question,
   what they must conform to, an artifact that follows the same pattern, what
   uses them and what they use, the settled reasoning behind them, the work in
-  flight on them, and where the asks behind them are tracked
+  flight on them, and where the asks behind them are tracked. A start, never a
+  boundary: a reader whose reading is not sealed follows a claim wherever its
+  source leads, the brief included
 - **Stances** — one line each, naming a position and no fact: a fact a stance
   leans on is a note with its path
+
+Gather the live state the ask leans on once, before the panel starts, so no
+agent repeats the query: what lives outside the repositories, and the answer
+of any command that fetches. The brief is frozen once the first proposer
+launches. A correction is a dated erratum line beneath the Notes, named in
+the task of every stage after it, and a return whose premise it overturns is
+run again.
 
 ## Stances and size
 
@@ -80,13 +93,16 @@ effort the host offers, critics one step below.
 ## Run
 
 Every agent is fresh and changes nothing: no file, its own scratch included,
-and no git ref, so it fetches, pulls and checks out nothing, and names as a
-gap what it cannot read as the tree stands. Hand each the knowledge base's
+and no git ref, so it runs no git fetch, pull or checkout, and names as a
+gap what it cannot read as the tree stands. A read-only query to stdout is
+allowed where the Notes lack the state a claim needs or hold it too old for
+that claim, and its return names the premise that moved. Hand each the knowledge base's
 root, the checkout where there is one, and the brief: it reads the brief first, then
 any source it needs, and neither a file in the run's directory you did not
 name to it nor any record of a session's conversation. Save each return to
 the run's directory as it arrives, named for its stage and stance, and hand a
-later stage those paths rather than your copy. Ask each, beside its work, for
+later stage those paths rather than your copy. A return carries neither the
+brief again nor the story of its search. Ask each, beside its work, for
 one line on what in its instructions cost it time or misled it. Wait for
 every agent you launch: a run with one still out has not ended.
 
@@ -102,7 +118,9 @@ every agent you launch: a run with one still out has not ended.
    claim the proposal rests on, says what would have to be true for it to
    hold.
 3. **Judge.** One agent, once every critique is in, handed every proposal with
-   its stance and critique. It writes the deliverable as one answer in its own
+   its stance and critique. It starts from them and opens source to settle
+   where they conflict or leave a decisive claim unchecked, never to repeat
+   their discovery. It writes the deliverable as one answer in its own
    voice, taking what holds from every proposal, and, unless its role says
    what it opens with, opens with what it decided in one to five sentences.
    The alternatives it names are the design's, never the panel's, and it
@@ -110,8 +128,11 @@ every agent you launch: a run with one still out has not ended.
    brief took from one as a fact.
 4. **Check.** One agent, handed the brief, the verdict and the mode's
    `check.md`, and nothing else the panel wrote; its task too replaces the
-   deliverable. It confirms each concrete claim the verdict rests on and
-   corrects each wrong one in place, returning the corrected verdict and,
+   deliverable. It confirms each concrete claim the verdict rests on against
+   the source that decides it, by the Notes' rule where the reading is not
+   sealed, a premise from the brief or a claim every proposal shared among
+   them, since agreement is not evidence. It corrects each wrong one in place,
+   returning the corrected verdict and,
    apart from it, what the verdict said, what the source shows and where. A
    duration resting on the user's own pace is a wrong claim like any other.
    It changes no decision: a refuted claim that a decision rests on, and each
