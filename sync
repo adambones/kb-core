@@ -3,8 +3,10 @@
 
 Run as `core/sync`; `--no-pull` skips the fetch. Prints one line per change and one
 `attention:` line per thing a person must resolve. The links it removes lead into the
-core: one whose target the core has retired, and any `.md` link at the knowledge
-base's root.
+core: one whose target the core has retired, any `.md` link at the knowledge base's
+root, and `amend-core` where the knowledge base binds a read-only core. There it also
+resets the checkout to its upstream, dropping any edit, file or commit made in it,
+denies Claude Code's edits under core/, and flags no suggestions file.
 """
 
 import argparse
@@ -20,6 +22,12 @@ CORE = os.path.dirname(os.path.realpath(__file__))
 KB = os.path.dirname(CORE)
 SKILLS = os.path.join(CORE, "skills")
 GATE = "core/hooks/commit-gate.py"
+# The Bind table's role name, held here; anywhere in the Bindings section it binds, as each Always role's does
+READ_ONLY = "read-only core"
+WRITER = "amend-core"
+# Edit covers every tool that writes a file, and the leading slash anchors at the session's working directory
+# A deny rule matches the file a link leads to as well as the link, so this one covers every skill linked into the core
+DENY_CORE = "Edit(/core/**)"
 # Scratch untouched this long has outlived the work that made it
 SCRATCH_DAYS = 14
 
@@ -63,8 +71,8 @@ def reason(result):
     return (failures or lines or ["git gave no reason"])[-1]
 
 
-def pull():
-    """Fetch, then fast-forward a clean checkout; True when the upstream ref is current."""
+def pull(read_only):
+    """Fetch, then bring the checkout to its upstream; True when the upstream ref is current."""
     fetched = git("fetch", "-q", timeout=FETCH_SECONDS)
     if fetched.returncode != 0:
         attention("core/ was not fetched: " + reason(fetched))
@@ -73,23 +81,40 @@ def pull():
     if git("rev-parse", "--verify", "-q", "@{u}").returncode != 0:
         attention("core/ tracks no upstream branch, so it was not pulled")
         return False
-    # Sessions edit core/ in place, so a dirty tree is someone's work in progress
-    # A queued suggestion is the exception: git carries it through any fast-forward that leaves its file alone, and refuses one that would not
-    dirty = [line[3:] for line in git("status", "--porcelain").stdout.splitlines()]
-    if any(not path.startswith("suggestions/") for path in dirty):
-        attention("core/ has uncommitted changes, so it was not pulled")
+    # Read before the move, which empties the range
+    titles = git("log", "--format=%s", "HEAD..@{u}").stdout.splitlines()
+    # Nothing written in a read-only checkout can reach the core, so no edit there is anyone's work in progress
+    if read_only:
+        moved = put_back()
+    else:
+        # Sessions edit core/ in place, so a dirty tree is someone's work in progress
+        # A queued suggestion is the exception: git carries it through any fast-forward that leaves its file alone, and refuses one that would not
+        dirty = [line[3:] for line in git("status", "--porcelain").stdout.splitlines()]
+        if any(not path.startswith("suggestions/") for path in dirty):
+            attention("core/ has uncommitted changes, so it was not pulled")
+            return True
+        # A merge belongs to checkin's pull, which can stop for a person
+        moved = git("merge", "--ff-only", "-q", "@{u}")
+    if moved.returncode != 0:
+        attention("core/ was not pulled: " + reason(moved))
         return True
-    before = git("rev-parse", "HEAD").stdout.strip()
-    # A merge belongs to checkin's pull, which can stop for a person
-    merged = git("merge", "--ff-only", "-q", "@{u}")
-    if merged.returncode != 0:
-        attention("core/ was not pulled: " + reason(merged))
-        return True
-    after = git("rev-parse", "HEAD").stdout.strip()
     # Each title, since a rename or a changed promise reaches another knowledge base only as a commit title
-    for title in git("log", "--format=%s", before + ".." + after).stdout.splitlines():
+    for title in titles:
         print("pulled: " + title)
     return True
+
+
+def put_back():
+    """Reset a read-only checkout to its upstream and delete what it does not track, naming each edit, file and commit dropped."""
+    for line in git("status", "--porcelain", "--untracked-files=no").stdout.splitlines():
+        print("put back core/%s, which an edit here changed" % line[3:])
+    # An untracked file would ride into a core commit checkin cannot push; ignored files stay
+    for line in git("clean", "-nd").stdout.splitlines():
+        print("removed core/%s, which the core does not track" % line[len("Would remove "):])
+    git("clean", "-fdq")
+    for title in git("log", "--format=%s", "@{u}..HEAD").stdout.splitlines():
+        print("dropped the core commit %s, which this knowledge base cannot push" % title)
+    return git("reset", "--hard", "-q", "@{u}")
 
 
 def target_of(link):
@@ -173,14 +198,20 @@ def unlink_rubric():
             attention("removed %s, so cite it as %s wherever the knowledge base's own files name it" % (shown(path), cited))
 
 
-def link_skills(fetched):
+def link_skills(fetched, read_only):
     skills = sorted(
         name for name in os.listdir(SKILLS) if os.path.isfile(os.path.join(SKILLS, name, "SKILL.md"))
     )
     for directory in skill_directories():
         prune(directory, fetched)
         for name in skills:
-            link(os.path.join(directory, name), os.path.join(SKILLS, name))
+            path = os.path.join(directory, name)
+            if not (read_only and name == WRITER):
+                link(path, os.path.join(SKILLS, name))
+            # An amend-core of the knowledge base's own stands; only a link into the core leaves
+            elif os.path.islink(path) and target_of(path).startswith(CORE + os.sep):
+                os.remove(path)
+                print("removed %s, since this knowledge base reads the core only" % shown(path))
 
 
 def gitignore(name):
@@ -342,30 +373,57 @@ def purge_scratch():
             subprocess.run(["git", "--git-dir", repository, "worktree", "prune"], capture_output=True, text=True)
 
 
-def install_commit_gate():
-    """Have Claude Code run the commit gate before every shell command, unless a hook already names it."""
-    path = os.path.join(KB, ".claude", "settings.json")
+SETTINGS = os.path.join(KB, ".claude", "settings.json")
+
+
+def settings_list(outer, inner):
+    """Claude Code's project settings and the list at settings[outer][inner], added in memory where missing, or why the file holds none."""
     settings = {}
-    if os.path.exists(path):
+    if os.path.exists(SETTINGS):
         try:
-            with open(path, encoding="utf-8") as handle:
+            with open(SETTINGS, encoding="utf-8") as handle:
                 settings = json.load(handle)
         except ValueError:
-            attention(".claude/settings.json is not valid JSON, so the commit gate was not installed")
-            return
-    hooks = settings.setdefault("hooks", {}) if isinstance(settings, dict) else None
-    entries = hooks.setdefault("PreToolUse", []) if isinstance(hooks, dict) else None
-    if not isinstance(entries, list):
-        attention(".claude/settings.json holds no PreToolUse list, so the commit gate was not installed")
+            return "is not valid JSON"
+    section = settings.setdefault(outer, {}) if isinstance(settings, dict) else None
+    found = section.setdefault(inner, []) if isinstance(section, dict) else None
+    return (settings, found) if isinstance(found, list) else "holds no %s list" % inner
+
+
+def save_settings(settings):
+    os.makedirs(os.path.dirname(SETTINGS), exist_ok=True)
+    with open(SETTINGS, "w", encoding="utf-8") as handle:
+        handle.write(json.dumps(settings, indent=2, ensure_ascii=False) + "\n")
+
+
+def install_commit_gate():
+    """Have Claude Code run the commit gate before every shell command, unless a hook already names it."""
+    found = settings_list("hooks", "PreToolUse")
+    if isinstance(found, str):
+        attention(".claude/settings.json %s, so the commit gate was not installed" % found)
         return
+    settings, entries = found
     # A knowledge base may pass its own recording skills after the path, so any hook naming the gate counts as installed
     if any(GATE in str(hook.get("command", "")) for entry in entries if isinstance(entry, dict) for hook in entry.get("hooks", []) if isinstance(hook, dict)):
         return
     entries.append({"matcher": "Bash", "hooks": [{"type": "command", "command": '"$CLAUDE_PROJECT_DIR"/' + GATE}]})
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8") as handle:
-        handle.write(json.dumps(settings, indent=2, ensure_ascii=False) + "\n")
+    save_settings(settings)
     print("installed the commit gate in .claude/settings.json")
+
+
+def deny_core_edits():
+    """Have Claude Code refuse its own edits under core/, unless the rule is already there."""
+    # Shell commands and other clients still write here, which the next sync's reset puts back
+    found = settings_list("permissions", "deny")
+    if isinstance(found, str):
+        attention(".claude/settings.json %s, so edits under core/ were not denied" % found)
+        return
+    settings, rules = found
+    if DENY_CORE in rules:
+        return
+    rules.append(DENY_CORE)
+    save_settings(settings)
+    print("denied edits under core/ in .claude/settings.json")
 
 
 def check_suggestions():
@@ -399,6 +457,12 @@ def bindings_section(path):
             end = next((i for i, depth, _ in headings[position + 1 :] if depth <= level), len(lines))
             return "\n".join(lines[start:end])
     return None
+
+
+def binds_read_only():
+    path = os.path.join(KB, INSTRUCTIONS)
+    section = bindings_section(path) if os.path.isfile(path) else None
+    return section is not None and READ_ONLY in section.casefold()
 
 
 def check_bindings():
@@ -445,17 +509,23 @@ def main():
     # Only a checkout at core/ inside a repository knows which knowledge base it serves, and any other parent would gain links it never asked for
     if os.path.basename(CORE) != "core" or not os.path.exists(os.path.join(KB, ".git")):
         sys.exit("sync: %s is not a core/ checkout inside a knowledge base's repository" % CORE)
-    fetched = False if args.no_pull else pull()
+    read_only = binds_read_only()
+    fetched = False if args.no_pull else pull(read_only)
     unlink_rubric()
-    link_skills(fetched)
+    link_skills(fetched, read_only)
     # The checkout is cloned rather than created, so it is no row in the Slots table
     gitignore("core")
     make_slots()
     purge_scratch()
     install_commit_gate()
+    # Lifting the binding leaves the deny rule for a person to remove
+    if read_only:
+        deny_core_edits()
     check_bindings()
     check_instructions()
-    check_suggestions()
+    # Moving lines into core/suggestions/ is advice a read-only knowledge base cannot take
+    if not read_only:
+        check_suggestions()
 
 
 if __name__ == "__main__":

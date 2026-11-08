@@ -36,7 +36,8 @@ description: Change the rules or skills every knowledge base shares — invoke b
    tables: it looks for each Bind role's name, before any gloss, in each knowledge
    base's Bindings section, wherever the third cell says `Always`, and it creates
    each slot the Slots table names, with a `.gitignore` line where its row says
-   ignored. Renaming a skill or a rubric, or changing what
+   ignored. It holds the read-only core's role name itself, so renaming that row
+   renames its constant too. Renaming a skill or a rubric, or changing what
    one promises, breaks each file that invokes or cites it, so search this
    knowledge base for those before the edit lands, and name the rename or the
    changed promise in the commit title, which every other knowledge base's `checkin` reports when its

@@ -15,11 +15,13 @@ core/sync
 
 The checkout sits inside the knowledge base so every committed link is relative and resolves on any machine.
 
+A knowledge base that cannot push to the core binds a read-only core. There `core/sync` links every skill but `amend-core`, denies Claude Code's edits under `core/` in `.claude/settings.json`, and resets the checkout to the core's remote at each pull, deleting what the core does not track and printing each edit, file and commit it drops.
+
 Turn agent memory off in each agent's settings (No Memories). In Claude Code that is `"autoMemoryEnabled": false` in `.claude/settings.json`.
 
 `core/sync` also installs `core/hooks/commit-gate.py` in `.claude/settings.json`, where Claude Code refuses a commit, a push or a new pull request unless `checkin` is the session's latest skill. A knowledge base whose recording step commits or opens pull requests itself passes that skill's name as an argument after the hook's path there.
 
-Run each agent in its auto mode, which proceeds on routine work and asks only before an irreversible action, since the skills run unattended. In Claude Code that is `"defaultMode": "auto"` under `permissions` in `.claude/settings.json`. In Antigravity it is Agent Mode `auto` in `/config`, one setting for every workspace on the machine.
+Run each agent in its auto mode, which proceeds on routine work and asks only before an irreversible action, since the skills run unattended. In Claude Code that is `"defaultMode": "auto"` under `permissions` in `~/.claude/settings.json`, for every project on the machine since a project's own settings cannot start it, or Auto in the desktop app's mode selector, which keeps it per folder. In Antigravity it is Agent Mode `auto` in `/config`, one setting for every workspace on the machine.
 
 Start the knowledge base's documents from the core alone. Seeding it with another knowledge base's documents imports that one's traits into a new domain.
 
@@ -38,6 +40,7 @@ Start the knowledge base's documents from the core alone. Seeding it with anothe
 | Shared repositories — where its writing lands in a repository another audience reads | `checkin`, `audit-comments`, `improve-docs` | Where the knowledge base has one |
 | Verbatim source — where other parties' own words live | `deliberate`, `counsel`, `slack-log` | Where the knowledge base has one |
 | Followed channels — each Slack channel it mirrors, with its ID and any backfill floor | `slack-log` | Where the knowledge base follows Slack |
+| Read-only core — the core's remote, which it pulls and cannot push to | `core/sync`, `suggest` | Where the knowledge base cannot push to the core |
 
 ## Slots
 
@@ -49,7 +52,7 @@ The core fixes these at the knowledge base's root, so no knowledge base declares
 | `deliberations/` | One record per `deliberate` or `counsel` run. The run writes it, the session that hears the user's ruling on it appends that ruling verbatim and dated, and nothing else edits it | tracked |
 | `scratch/` | Working files, safe for anything to delete, each top-level entry named for what it serves. `core/sync` deletes an entry once nothing in it has changed for 14 days | ignored |
 | `sessions/` | Agent sessions exported as transcripts | ignored |
-| `suggestions/` | One file per skill or root document of the knowledge base's own, a line per change a session saw it needed and did not make. The core's skills and documents keep theirs in `core/suggestions/` | tracked |
+| `suggestions/` | One file per skill or root document of the knowledge base's own, a line per change a session saw it needed and did not make. The core's skills and documents keep theirs in `core/suggestions/`, or in `suggestions/core/` where the knowledge base binds a read-only core | tracked |
 
 ## Supply
 
@@ -71,4 +74,4 @@ Every knowledge base runs its tasks through make, so `make help` is the map an a
 
 ## Change
 
-Edit the core through `amend-core`, except `core/suggestions/`, which `suggest` appends to from any knowledge base. `core/` is a repository of its own, so its changes never show in the knowledge base's `git status`; `checkin` commits and pushes them there. Two knowledge bases on one machine keep separate checkouts.
+Edit the core through `amend-core`, except `core/suggestions/`, which `suggest` appends to from any knowledge base that can push to the core. `core/` is a repository of its own, so its changes never show in the knowledge base's `git status`; `checkin` commits and pushes them there. Two knowledge bases on one machine keep separate checkouts.

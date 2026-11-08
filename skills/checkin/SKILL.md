@@ -7,8 +7,8 @@ A commit is a pointer to its diff, never a record of the session. Write from the
 diff, not from session memory.
 
 1. **Sync the core.** Run `core/sync` from the knowledge base's root, before
-   reading anything the pull could change. Each link, `.gitignore` line and
-   hook it reports adding or removing is this session's change, except a link to a target
+   reading anything the pull could change. Each link, `.gitignore` line,
+   hook and deny rule it reports adding or removing is this session's change, except a link to a target
    `core/` has not committed, which belongs to whichever session wrote that
    target. Every line it prints goes in the report, and none of them stops the
    commit.
