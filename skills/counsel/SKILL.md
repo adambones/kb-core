@@ -7,19 +7,29 @@ description: Put a situation to a council of fresh advisors, each reading it fro
 
 **Bindings.** The source of truth and the lifecycles, and the product truth and verbatim source where declared, which every agent reads wherever the reading is not sealed.
 
-**Input.** As `deliberate`'s, the ask being the go.
+**Input.** As `deliberate`'s: an optional first line of paths, then the ask in the user's words. Nothing waits on the user but the agreement below, and where the input holds no ask, ask the user for one.
 
 Where this skill adopts `deliberate`'s rules, its advisors stand for the proposers, their angles for the stances, the Situation for the Notes, the counsellor for the judge and the counsel for the verdict.
 
 ## Orient
 
-The session that invokes this skill hosts the run. Read the knowledge base's homes on the situation, beyond the one the ask names, since counsel often comes from what surrounds the question, and each file the input names. The host's own view of the answer stays out of everything an agent reads, since the advisors' range is the point. A stopped run resumes as `deliberate` §Orient says.
+The session that invokes this skill hosts the run. Read the knowledge base's homes on the situation, beyond the one the ask names, since counsel often comes from what surrounds the question, and each file the input names. The host's own view of the answer stays out of everything an agent reads, since the advisors' range is the point. A brief under `scratch/` for this ask with no record under `deliberations/` is a run the host stopped: resume it without agreeing the ask again, running only the agents whose returns are missing.
+
+## Agree the ask
+
+An ask's own words can steer the council in ways its writer cannot see. Before the brief, open the agreement with one message holding:
+
+- the ask reworded to state the outcome the user wants and the horizon it runs to, narrowing the council no further than they mean
+- each change from their wording and why, where it requested a form, took a premise as given, or left out what surrounds the question
+- the questions the counsel would turn on that no source answers, each with what the sources suggest
+
+Ask nothing a source answers, and leave what kind of problem it is to the council. Answer each reply the same way until the user confirms a wording, which becomes the brief's Ask; a fact the user states on the way goes in the Situation. An ask a mode hands over, or one the user says to run as written, is already agreed.
 
 ## The brief
 
 Name the run, check the knowledge base out and gather live state as `deliberate` §The brief does, and write `brief.md` in the run's directory:
 
-- **Ask** — by `deliberate`'s rule
+- **Ask** — the agreed ask, verbatim. By `deliberate`'s rule, talk about the run and text others wrote stay out of it
 - **Deliverable** — the text of the mode's `role.md`, or of `role.md` beside this file
 - **Situation** — facts, by `deliberate`'s rule for Notes: what the user is after beyond the ask, what binds them, what they have tried or ruled out, what the other people involved have said and done, and what stays unknown
 - **Reading** — by `deliberate`'s rule
