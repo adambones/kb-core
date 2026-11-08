@@ -29,14 +29,14 @@ Start the knowledge base's documents from the core alone. Seeding it with anothe
 
 | Role | Asked for by | Needed |
 |------|--------------|--------|
-| Source of truth | `core/RUBRIC.md`, `deliberate`, `teach-me` | Always |
+| Source of truth | `core/RUBRIC.md`, `deliberate`, `counsel`, `teach-me` | Always |
 | Homes | `core/RUBRIC.md` | Always |
-| Lifecycles | `core/RUBRIC.md`, `deliberate`, `audit-comments`, `improve-docs` | Always |
+| Lifecycles | `core/RUBRIC.md`, `deliberate`, `counsel`, `audit-comments`, `improve-docs` | Always |
 | Slots | `core/RUBRIC.md` | Always |
 | Audience — who messages reach | `core/MESSAGING.md`, `distill` | Always |
-| Product truth — what the product is | `deliberate`, `distill` | Where the knowledge base has one |
+| Product truth — what the product is | `deliberate`, `counsel`, `distill` | Where the knowledge base has one |
 | Shared repositories — where its writing lands in a repository another audience reads | `checkin`, `audit-comments`, `improve-docs` | Where the knowledge base has one |
-| Verbatim source — where other parties' own words live | `deliberate`, `slack-log` | Where the knowledge base has one |
+| Verbatim source — where other parties' own words live | `deliberate`, `counsel`, `slack-log` | Where the knowledge base has one |
 | Followed channels — each Slack channel it mirrors, with its ID and any backfill floor | `slack-log` | Where the knowledge base follows Slack |
 
 ## Slots
@@ -46,7 +46,7 @@ The core fixes these at the knowledge base's root, so no knowledge base declares
 | Slot | Holds | Git |
 |------|-------|-----|
 | `code/` | Clones of the external repositories the knowledge base's agents work across | ignored |
-| `deliberations/` | One record per `deliberate` run. The run writes it, the session that hears the user's ruling on it appends that ruling verbatim and dated, and nothing else edits it | tracked |
+| `deliberations/` | One record per `deliberate` or `counsel` run. The run writes it, the session that hears the user's ruling on it appends that ruling verbatim and dated, and nothing else edits it | tracked |
 | `scratch/` | Working files, safe for anything to delete, each top-level entry named for what it serves. `core/sync` deletes an entry once nothing in it has changed for 14 days | ignored |
 | `sessions/` | Agent sessions exported as transcripts | ignored |
 | `suggestions/` | One file per skill or root document of the knowledge base's own, a line per change a session saw it needed and did not make. The core's skills and documents keep theirs in `core/suggestions/` | tracked |
@@ -63,7 +63,7 @@ The core leaves each knowledge base its orchestrators, the skills that sequence 
 | A writer of code | Reads `core/IMPLEMENTATION.md` §§1–2 before the first edit, then invokes `audit-comments` | Where the knowledge base writes code |
 | A reviewer of code | Reads `core/IMPLEMENTATION.md` §3 | Where the knowledge base reviews code |
 | A schedule | Runs `slack-log`'s `sync` over the followed channels | Where the knowledge base follows Slack |
-| A mode of `deliberate` | Holds a `role.md`, the deliverable its panel writes, and optionally a `check.md` its critics and check grade against; writes a `seal.txt` where the panel must not read beyond a list; invokes `deliberate` with those paths on its input's first line, and carries the record out once the run returns | Where the knowledge base asks for a deliverable other than a decision |
+| A mode of `deliberate` or `counsel` | Holds a `role.md`, the deliverable its panel writes, and optionally a `check.md` its skill grades the panel's work against; writes a `seal.txt` where the panel must not read beyond a list; invokes its skill with those paths on its input's first line, and carries the record out once the run returns | Where the knowledge base asks for a deliverable other than the skill's own |
 
 ## Tasks
 
