@@ -75,7 +75,6 @@ Write the record as `deliberate` §The record does, under these headings:
 
     ## Counsel — <your name> council, as checked
     ## Ask
-    ## Rulings
 
 Nothing else about the run stands above the counsel.
 

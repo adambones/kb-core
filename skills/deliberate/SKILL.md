@@ -163,7 +163,6 @@ Write `deliberations/<stem>-<YYYY-MM-DD>.md`:
 
     ## Ask
     ## Verdict — <your name> panel, as checked
-    ## Rulings
 
 `<model>` is the model the judge ran on, as the host names it, with the
 effort it was launched at beside it where the host takes one. `<session-id>` is this
@@ -172,16 +171,13 @@ Codex, the conversation ID Antigravity gives the agent, or `unknown` where the
 harness gives none. The Ask is the brief's, and the Verdict is the check's corrected verdict with its
 own headings one level below the record's. The brief and every agent's return
 stay in the run's directory. Other parties' words from a source the knowledge
-base keeps out of git are cited by path, never quoted. Rulings stays empty for
-the user.
+base keeps out of git are cited by path, never quoted.
 
 ## Return
 
 File each distinct line the agents returned about a skill or root document
 through `suggest`, and where the run created `<the run's directory>/kb`, remove
 it with `git worktree remove <the run's directory>/kb`. Return the record's
-path and the verdict's opening, and say that the user's ruling on the record
-is appended to its Rulings, verbatim and dated, by whichever session hears it,
-naming no file the conversation lives in. A verdict that came
+path and the verdict's opening. A verdict that came
 back wrong is answered by a reworked ask: a new run, whose input names this
 record only where the ask does.

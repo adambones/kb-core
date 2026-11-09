@@ -49,7 +49,7 @@ The core fixes these at the knowledge base's root, so no knowledge base declares
 | Slot | Holds | Git |
 |------|-------|-----|
 | `code/` | Clones of the external repositories the knowledge base's agents work across | ignored |
-| `deliberations/` | One record per `deliberate` or `counsel` run. The run writes it, the session that hears the user's ruling on it appends that ruling verbatim and dated, and nothing else edits it | tracked |
+| `deliberations/` | One record per `deliberate` or `counsel` run. The run writes it | tracked |
 | `scratch/` | Working files, safe for anything to delete, each top-level entry named for what it serves. `core/sync` deletes an entry once nothing in it has changed for 14 days | ignored |
 | `sessions/` | Agent sessions exported as transcripts | ignored |
 | `suggestions/` | One file per skill or root document of the knowledge base's own, a line per change a session saw it needed and did not make. The core's skills and documents keep theirs in `core/suggestions/`, or in `suggestions/core/` where the knowledge base binds a read-only core | tracked |
