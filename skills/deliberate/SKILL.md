@@ -57,7 +57,7 @@ at the root. Write `brief.md` in the run's directory:
 - **Reading** — the files to start from, outside in, a line each on why: what
   shows what kind of thing this is, the files at the centre of the question,
   what they must conform to, an artifact that follows the same pattern, what
-  uses them and what they use, the settled reasoning behind them, the work in
+  uses them and what they use, the reasoning behind them, the work in
   flight on them, and where the asks behind them are tracked. A start, never a
   boundary: a reader whose reading is not sealed follows a claim wherever its
   source leads, the brief included
