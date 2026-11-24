@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import fcntl
+import http.client
 import json
 import os
 import re
@@ -262,7 +263,8 @@ class Api:
                 if error.code != 429 and error.code < 500:
                     sys.exit(f"slack-log: {method} answered HTTP {error.code}")
                 time.sleep(int(error.headers.get("Retry-After", 10 * attempt)))
-            except (urllib.error.URLError, TimeoutError) as error:
+            # Once the request is sent, a dropped or cut-off response raises from http.client or the socket, which urllib leaves unwrapped
+            except (OSError, http.client.HTTPException) as error:
                 print(f"slack-log: retrying {method}, {error}", file=sys.stderr)
                 time.sleep(10 * attempt)
         else:
