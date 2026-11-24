@@ -59,9 +59,9 @@ by `file:line`, with whether the fix would change a contract.
 Verify each candidate against the code before it counts. Merge duplicates, ask
 wherever two fixes contradict, and sort:
 
-- **Applied** — a fix that changes no contract. Unlike a `core/IMPLEMENTATION.md` §3
-  review, a defect whose fix restores what the code's comments, tests and
-  documents already promise is applied too
+- **Applied** — a fix that changes no contract. A defect's fix restores what the
+  code's comments, tests and documents already promise, so it is applied whatever
+  its price
 - **Asked** — a fix that changes a contract, and every cut the deletion reviewer
   proposes, since what the change is for is not the pass's to decide. Each comes
   back as a decision with what it costs, or for a cut, what it removes

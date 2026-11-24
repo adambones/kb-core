@@ -8,7 +8,7 @@ comments are where the change is load-bearing, so an index of them is an index o
 what they have to understand. Run it once the code is written, before anything is
 written to the knowledge base's home for work in flight.
 
-Two things come out. Comment edits land in the code, and a report lands in the
+Two things come out. Edits land in the code, and a report lands in the
 session's reply. No new file — nothing here earns a home.
 
 ## Authority
@@ -17,13 +17,10 @@ The cold reader reports and changes nothing. It cannot tell a real defect from a
 constraint it was never shown, so a real defect comes back as a proposal like
 everything else.
 
-Fixing what it surfaces is yours. A constraint you cannot state simply is usually
-a seam that is actually wrong, which is why a comment pass finds bugs at all, and
-a known defect left in the diff to honour a scope boundary serves nobody. The
-condition is that the fix is announced — its own entry in the report, named as a
-code change rather than a comment one. An unreported behaviour change riding
-inside a pass called audit is the one thing the user's diff review cannot see
-coming.
+Fixing what it surfaces is yours, under `core/IMPLEMENTATION.md` §3's Correctness
+findings, and each fix goes in the report as a code fix. A constraint you cannot
+state simply is usually a seam that is actually wrong, which is why a comment pass
+finds bugs at all.
 
 ## The cold half goes to a fresh agent
 
@@ -84,17 +81,16 @@ keeps one and the seam is a risk rather than a smell.
 
 ## The report
 
-The diff is the reading surface. Two things go into the reply, because the diff
+The diff is the reading surface. Three things go into the reply, because the diff
 cannot show them:
 
 - **The smell index.** Each reassurance comment, lifted out of the code and stated
   as what it was — the place you were guessing. One line each.
 - **Declined findings.** A proposal you overrode, or a hole you left open, with the
   reason. One line each.
-
-A code fix made off the back of a finding is its own entry — `file:line`, what was
-wrong, what changed — and this is the only announcement it gets.
+- **Code fixes.** Each fix made off the back of a finding — `file:line`, what was
+  wrong, what changed. This is the only announcement it gets.
 
 Nothing else goes in. Not the comments you rewrote, deleted or added, and not the
-bookmarks you filled: those are in the diff, and the user reads the diff. Where the
-smell index is empty and nothing was declined, the report is no section at all.
+bookmarks you filled: those are in the diff, and the user reads the diff. Where all
+three are empty, the report is no section at all.

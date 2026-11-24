@@ -28,7 +28,7 @@ A comment is the deepest home a fact can have, and the cheapest: what it capture
 
 ## 3. Design and style review
 
-Read the code as a senior engineer reads a colleague's PR before signing it off: for how it reads, and what the next change will cost. Correctness belongs to verification, not to this review. The output is a ranked review — the defects found, and what each remedy costs.
+Read the code as a senior engineer reads a colleague's PR before signing it off: for how it reads, and what the next change will cost. The output is a ranked review — the defects found, and what each remedy costs.
 
 ### Register one: the red pen
 
@@ -60,11 +60,11 @@ Rank findings by cost, dearest first, naming which cost — what the defect char
 
 ### Preservation inventory
 
-Before proposing a structural move, inventory the observable contracts outside its intended delta: public inputs and outputs, persistent schemas, visible and accessibility landmarks, side effects, ordering and failure behavior. Tie each proposed boundary change to the inventory it preserves. A feature, behavior correction or contract migration is routed separately rather than riding inside the move.
+Before proposing a structural move, inventory the observable contracts outside its intended delta: public inputs and outputs, persistent schemas, visible and accessibility landmarks, side effects, ordering and failure behavior. Tie each proposed boundary change to the inventory it preserves. A feature or contract migration is routed separately rather than riding inside the move.
 
 ### Correctness findings
 
-A correctness defect found during a review is its own finding, reported with the contract it affects for a scope decision.
+A correctness defect found during a review is fixed whatever its price, never parked or left to honour the review's scope. The fix is written under §§1–2 and announced on its own, so whoever reads the diff sees it coming; a review that writes no code hands the fix back with its finding. A fix that would change a contract rather than restore one is a decision, and goes back as one.
 
 ### Verification boundary
 
