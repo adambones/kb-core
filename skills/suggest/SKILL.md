@@ -4,7 +4,7 @@ description: Queue one line of feedback on a skill or root document without chan
 ---
 
 1. **Name the target**: the skill, or the document at the root of the knowledge base or of the core, whose text would change, and the step or sentence in it.
-2. **Read its suggestions file where it exists**: for a target that resolves into `core/`, a skill linked from it included, `suggestions/core/<target>.md` where the knowledge base binds a read-only core and `core/suggestions/<target>.md` otherwise; for any other target, `suggestions/<target>.md`. The target is the skill's name or the document's name without `.md`. A line already saying the same takes no second, and a line this one contradicts is replaced, the later session having seen more.
+2. **Read its suggestions file where it exists**: for a target that resolves into `core/`, a skill linked from it included, `suggestions/core/<target>.md` where the knowledge base binds a read-only core and `core/suggestions/<target>.md` otherwise; for any other target, `suggestions/<target>.md`. The target is the skill's name or the document's name without `.md`. A point this session already filed takes no second line, while one another session filed takes a line of its own, so the lines naming a point count the sessions it cost; every line this one contradicts is replaced, the later session having seen more.
 3. **Append one line**, for a reader who never had this session:
 
        - <YYYY-MM-DD> · <session-id> · <step or sentence> — <what happened> → <what would have served>
