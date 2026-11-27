@@ -7,11 +7,7 @@ description: Review finished code in one fan-out, apply the fixes that change no
 
 ## Target
 
-State the checkout's absolute path in every command and in every agent's prompt,
-since an agent inherits the session's directory rather than the target's. Paths
-after `--` are the reading paths: other checkouts that use the code under review, which
-the reviewers read and nothing in which changes, so a fix that falls in one is
-asked.
+State the checkout's absolute path in every command and in every agent's prompt, since an agent inherits the session's directory rather than the target's. Paths after `--` are the reading paths: other checkouts that use the code under review, which the reviewers read and nothing in which changes, so a fix that falls in one is asked.
 
 ## Scope
 
@@ -22,18 +18,11 @@ asked.
 | a date | Everything since the last commit before it |
 | a path | The files under it as they stand, every line counting as changed and none as deleted |
 
-Where a scope finds nothing, stop and say so. Fixes need the checkout at the scope's
-last commit, or holding the uncommitted changes under review. Where
-it is neither, every fix is asked and the audit is skipped.
+Where a scope finds nothing, stop and say so. Fixes need the checkout at the scope's last commit, or holding the uncommitted changes under review. Where it is neither, every fix is asked and the audit is skipped.
 
 ## Review
 
-Six fresh agents, one per reviewer below, run in parallel. Hand each the
-checkout, the reading paths, the command that produces the scope or the files a
-path names, its own angles, and the sections of `core/IMPLEMENTATION.md` they cite,
-with §3's preservation inventory as what a contract is. Ask each for every
-candidate it can name a scenario or a cost for, the half-believed included, keyed
-by `file:line`, with whether the fix would change a contract.
+Six fresh agents, one per reviewer below, run in parallel. Hand each the checkout, the reading paths, the command that produces the scope or the files a path names, its own angles, and the sections of `core/IMPLEMENTATION.md` they cite, with §3's preservation inventory as what a contract is. Ask each for every candidate it can name a scenario or a cost for, the half-believed included, keyed by `file:line`, with whether the fix would change a contract.
 
 - **Correctness**
   - every changed line and its enclosing function, for the input, state or timing that makes it wrong
@@ -56,37 +45,22 @@ by `file:line`, with whether the fix would change a contract.
 
 ## Sort
 
-Verify each candidate against the code before it counts. Merge duplicates, ask
-wherever two fixes contradict, and sort:
+Verify each candidate against the code before it counts. Merge duplicates, ask wherever two fixes contradict, and sort:
 
-- **Applied** — a fix that changes no contract. A defect's fix restores what the
-  code's comments, tests and documents already promise, so it is applied whatever
-  its price
-- **Asked** — a fix that changes a contract, and every cut the deletion reviewer
-  proposes, since what the change is for is not the pass's to decide. Each comes
-  back as a decision with what it costs, or for a cut, what it removes
+- **Applied** — a fix that changes no contract. A defect's fix restores what the code's comments, tests and documents already promise, so it is applied whatever its price
+- **Asked** — a fix that changes a contract, and every cut the deletion reviewer proposes, since what the change is for is not the pass's to decide. Each comes back as a decision with what it costs, or for a cut, what it removes
 - **Parked** — a remedy §3 would park on its price; one it would leave is dropped
 
-A candidate that fits two takes the more cautious, parked before asked before
-applied.
+A candidate that fits two takes the more cautious, parked before asked before applied.
 
 ## Apply
 
-Read `core/IMPLEMENTATION.md` §§1–2 before the first fix. Run the repository's tests
-before it as well, so a test already red is charged to no fix. Then make the
-applied fixes, testing after each or bisecting a batch that turns a test red. A fix
-that turns a test red changes a contract after all, so revert it and ask. Where
-the tests cannot run here, every fix that touches behaviour is asked.
+Read `core/IMPLEMENTATION.md` §§1–2 before the first fix. Run the repository's tests before it as well, so a test already red is charged to no fix. Then make the applied fixes, testing after each or bisecting a batch that turns a test red. A fix that turns a test red changes a contract after all, so revert it and ask. Where the tests cannot run here, every fix that touches behaviour is asked.
 
 ## Audit once
 
-Invoke `audit-comments` over the scope and the pass's own changes, or over the
-pass's changes alone on a path scope. A code fix the audit makes is tested like an
-applied fix, and one that changes a contract is asked instead.
+Invoke `audit-comments` over the scope and the pass's own changes, or over the pass's changes alone on a path scope. A code fix the audit makes is tested like an applied fix, and one that changes a contract is asked instead.
 
 ## Report
 
-The reply carries the asked and parked fixes, one line for each applied fix that
-corrects behaviour and each test already red, and the audit's report. An asked fix
-approved later lands through the knowledge base's writer of code. Leave the commit
-to the knowledge base's recording step.
+The reply carries the asked and parked fixes, one line for each applied fix that corrects behaviour and each test already red, and the audit's report. An asked fix approved later lands through the knowledge base's writer of code. Leave the commit to the knowledge base's recording step.
