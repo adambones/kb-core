@@ -19,7 +19,7 @@ A knowledge base that cannot push to the core binds a read-only core. There `cor
 
 Turn agent memory off in each agent's settings (No Memories). In Claude Code that is `"autoMemoryEnabled": false` in `.claude/settings.json`.
 
-`core/sync` also installs `core/hooks/commit-gate.py` in `.claude/settings.json`, where Claude Code refuses a commit, a push or a new pull request unless `checkin` is the session's latest skill. A knowledge base whose recording step commits or opens pull requests itself passes that skill's name as an argument after the hook's path there.
+`core/sync` also installs `core/hooks/commit-gate.py` in `.claude/settings.json`, where Claude Code refuses `git commit`, a push or a new pull request unless `checkin` is the latest skill of the agent running the command. A knowledge base whose recording step commits or opens pull requests itself passes that skill's name as an argument after the hook's path there.
 
 Run each agent in its auto mode, which proceeds on routine work and asks only before an irreversible action, since the skills run unattended. In Claude Code that is `"defaultMode": "auto"` under `permissions` in `~/.claude/settings.json`, for every project on the machine since a project's own settings cannot start it, or Auto in the desktop app's mode selector, which keeps it per folder. In Antigravity it is Agent Mode `auto` in `/config`, one setting for every workspace on the machine.
 

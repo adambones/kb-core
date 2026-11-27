@@ -121,6 +121,34 @@ for label, command, records, recorders, transcript, (code, decision, named) in R
     failures += not got
     print(("ok  " if got else "FAIL"), label)
 
+
+# Claude Code's layout: a directory named for the session's transcript, holding one file per agent id
+def run_subagent(command, parent, own):
+    with tempfile.TemporaryDirectory() as session:
+        transcript = os.path.join(session, "session.jsonl")
+        os.makedirs(os.path.join(session, "session", "subagents"))
+        written = [(transcript, parent)] + ([(os.path.join(session, "session", "subagents", "agent-probe.jsonl"), own)] if own is not None else [])
+        for path, records in written:
+            with open(path, "w", encoding="utf-8") as handle:
+                handle.writelines(json.dumps(record) + "\n" for record in records)
+        event = {"tool_name": "Bash", "tool_input": {"command": command}, "transcript_path": transcript, "agent_id": "probe"}
+        done = subprocess.run([GATE], input=json.dumps(event), capture_output=True, text=True)
+    decision = json.loads(done.stdout)["hookSpecificOutput"]["permissionDecision"] if done.stdout.strip() else ""
+    return done.returncode, decision, done.stderr
+
+
+SUBAGENTS = [
+    ("a subagent that invoked checkin itself commits", [called("build")], [called("checkin")], (0, "", "")),
+    ("a subagent does not borrow its parent's checkin", [called("checkin")], [called("build")], (2, "", "/checkin")),
+    ("a subagent whose own transcript is missing hands the act back to the user", [called("checkin")], None, (0, "ask", "")),
+]
+
+for label, parent, own, (code, decision, named) in SUBAGENTS:
+    status, got_decision, message = run_subagent("git commit README.md -m x", parent, own)
+    got = status == code and got_decision == decision and named in message
+    failures += not got
+    print(("ok  " if got else "FAIL"), label)
+
 shutil.rmtree(KB)
 print(("%d failed" % failures) if failures else "all passed")
 sys.exit(1 if failures else 0)

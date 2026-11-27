@@ -3,6 +3,7 @@
 # A user's go-ahead given in words is beyond any hook, so the gate certifies only that the recording rules are loaded
 # A push that rewrites or deletes what origin holds asks even inside the recording skills: an unmerged branch's overwritten commits exist nowhere else
 # Only git and gh typed as the command are seen; a push from inside another program is the auto-mode classifier's to judge
+# A merge's message is git's own, so no recording rule applies and git merge and its --continue pass under any skill
 
 import json
 import os
@@ -104,7 +105,7 @@ def invoked(record):
 
 
 def current_skill(lines):
-    """The knowledge base's skill most recently invoked in the session."""
+    """The knowledge base's skill most recently invoked in the transcript."""
     # A plugin skill sharing a name, or one the knowledge base does not keep, carries someone else's rules
     # The latest invocation holds until another replaces it, so a recording step that called checkin may still commit after it returns
     current = None
@@ -144,8 +145,14 @@ def main():
     if not found:
         sys.exit(0)
 
+    transcript = event.get("transcript_path", "")
+    # A subagent's event names its parent's transcript, but a window belongs to the step running in it, and a subagent launched while its parent records is not running that step
+    # Claude Code keeps a subagent's transcript in a directory named for the session's, one file per agent id
+    if transcript and event.get("agent_id"):
+        transcript = os.path.join(os.path.splitext(transcript)[0], "subagents", "agent-%s.jsonl" % os.path.basename(event["agent_id"]))
+
     try:
-        with open(event.get("transcript_path", ""), encoding="utf-8") as handle:
+        with open(transcript, encoding="utf-8") as handle:
             skill = current_skill(handle)
     except Exception:
         # An unreadable transcript hides the running skill, so the user decides rather than the gate passing or refusing
